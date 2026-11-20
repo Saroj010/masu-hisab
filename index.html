@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#22409A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Masu Hisab">
+<meta name="description" content="Village meat cutting accounts: orders, weights, payments, reminders, weight guess and my sales.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>window.MASU_WEB = true;</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masu Hisab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one phone-width column, sticky header, bottom tab bar; forms slide up as sheets */
+  --bg:#EEF0F5;
+  --surface:#FFFFFF;
+  --ink:#141A2C;
+  --muted:#596178;
+  --line:#D9DDE7;
+  --accent:#22409A;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4E9F7;
+  --good:#1D7446; --good-soft:#E1F2E8;
+  --warn:#8F5D00; --warn-soft:#FAEFD6;
+  --bad:#BE2329; --bad-soft:#FBE5E5;
+  --display:"Baloo 2","Mukta",system-ui,sans-serif;
+  --body:"Mukta","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1220; --surface:#171D2D; --ink:#E8EBF3; --muted:#9BA3B9; --line:#29314A;
+    --accent:#8CA4F2; --accent-ink:#0E1220; --accent-soft:#212B4A;
+    --good:#62CB91; --good-soft:#143023; --warn:#E9B551; --warn-soft:#362A10; --bad:#FF807A; --bad-soft:#3A191B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1220; --surface:#171D2D; --ink:#E8EBF3; --muted:#9BA3B9; --line:#29314A;
+  --accent:#8CA4F2; --accent-ink:#0E1220; --accent-soft:#212B4A;
+  --good:#62CB91; --good-soft:#143023; --warn:#E9B551; --warn-soft:#362A10; --bad:#FF807A; --bad-soft:#3A191B;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+.app{display:flex;flex-direction:column;min-height:100%}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:600px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.brand{flex:1;min-width:0}
+.brand h1{font-size:24px;color:var(--accent)}
+.brand p{margin:0;font-size:13px;color:var(--muted)}
+main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:16px 16px 110px;display:flex;flex-direction:column;gap:14px}
+
+.banner{border-radius:12px;padding:10px 12px;font-size:14px;background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent)}
+
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;min-height:44px}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:8px 10px}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:transparent}
+.btn.good{background:var(--good);color:#fff;border-color:var(--good)}
+.btn.sm{min-height:36px;padding:6px 10px;font-size:14px;border-radius:10px}
+.btn.block{width:100%}
+.btn.big{min-height:54px;font-size:18px}
+.lang-btn{border-radius:999px;min-height:38px;padding:6px 14px;font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+.hero{background:var(--accent);color:var(--accent-ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:2px}
+.hero .lbl{font-size:14px;opacity:.85}
+.hero .big{font-family:var(--display);font-size:34px;line-height:1.1}
+.hero .sub{font-size:14px;opacity:.85}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.s-card{text-align:left;width:100%;cursor:pointer;display:flex;flex-direction:column;gap:8px;font:inherit}
+.s-top{display:flex;align-items:center;gap:10px}
+.badge{flex:none;font-weight:700;font-size:13px;border-radius:8px;padding:2px 8px;background:var(--accent-soft);color:var(--accent)}
+.s-title{font-weight:700;font-size:17px;flex:1;min-width:0}
+.s-meta{font-size:14px;color:var(--muted)}
+.s-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);border-radius:99px}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;white-space:nowrap}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.neutral{background:var(--accent-soft);color:var(--accent)}
+
+.topline{display:flex;justify-content:space-between;align-items:center;margin:-6px -6px 0}
+.s-head h2{font-size:26px}
+.s-head p{margin:2px 0 0;color:var(--muted);font-size:15px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat span{font-size:13px;color:var(--muted)}
+.stat b{font-size:18px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat.alert b{color:var(--bad)}
+.money{display:flex;flex-direction:column;gap:8px}
+.mrow{display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+.mrow b{font-weight:700;white-space:nowrap}
+.mrow.good b{color:var(--good)}
+.mrow.bad b{color:var(--bad)}
+.mrow.total{border-top:1px solid var(--line);padding-top:8px}
+
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:8px 6px;font-weight:600;cursor:pointer;min-height:40px;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+.entries{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.entry{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--bad);border-radius:12px;display:flex;align-items:stretch;gap:8px;padding:10px 10px 10px 12px}
+.entry.st-paid{border-left-color:var(--good)}
+.entry.st-partial{border-left-color:var(--warn)}
+.e-main{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.e-name{font-weight:700;font-size:17px;overflow-wrap:anywhere}
+.e-sub{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.e-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.e-btns{display:flex;gap:6px}
+.entry.st-order{border-left-color:var(--accent)}
+.entry.st-nomeat{border-left-color:var(--line);border-left-style:dashed}
+.e-sub.due{color:var(--bad)} .e-sub.part{color:var(--warn)} .e-sub.ok{color:var(--good)}
+.e-qty{display:flex;align-items:center;gap:4px;flex:none}
+.e-qty input{width:64px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:6px 8px;font-size:17px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.e-qty input:focus{background:var(--surface);border-color:var(--accent)}
+.e-qty span{font-size:13px;color:var(--muted);min-width:34px}
+.tick{flex:none;width:44px;height:44px;border-radius:12px;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;padding:0;align-self:center}
+.tick svg{width:24px;height:24px;opacity:0}
+.tick[aria-checked="true"]{background:var(--good);border-color:var(--good);color:#fff}
+.tick[aria-checked="true"] svg{opacity:1}
+.tick[aria-checked="mixed"]{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.tick[aria-checked="mixed"] svg{opacity:.55}
+.tick[aria-disabled="true"]{border-style:dashed;opacity:.5;cursor:not-allowed}
+.col-head{display:flex;gap:8px;padding:0 10px 0 17px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.col-head span:first-child{flex:1}
+.col-head .c-meat{width:102px;text-align:center}
+.col-head .c-paid{width:44px;text-align:center}
+.seg.four button{font-size:13.5px;padding:6px 2px;line-height:1.15}
+.bulk-row{display:grid;grid-template-columns:1.3fr 1fr 40px;gap:6px;align-items:center}
+.bulk-row input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;font-size:16px;min-height:44px}
+.bulk-row .x{min-height:40px;padding:0;border-radius:10px}
+.pick{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:6px}
+.pick label{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:9px;cursor:pointer}
+.pick label:has(input:checked){background:var(--accent-soft)}
+.field .pick label{font-size:16px;color:var(--ink);font-weight:500}
+.field .pick input{width:22px;height:22px;min-height:0;padding:0;flex:none;accent-color:var(--accent)}
+.pick .pn{flex:1;min-width:0;font-weight:600}
+.pick .pp{font-size:13px;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;list-style:none;margin:0;padding:0;counter-reset:st}
+.steps li{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px;line-height:1.2}
+.steps li b{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--bg);border:1px solid var(--line)}
+.steps li.done b{background:var(--good);border-color:var(--good);color:#fff}
+.steps li.now{border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.steps li.now b{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cmp{display:flex;flex-direction:column;gap:10px}
+.cmp h3{font-size:18px}
+.weigh{display:flex;align-items:center;gap:8px}
+.weigh input{flex:1;min-width:0;border:2px solid var(--accent);border-radius:12px;padding:8px 12px;font-size:22px;font-weight:700;min-height:52px;background:var(--surface);font-variant-numeric:tabular-nums}
+.weigh span{font-weight:700;color:var(--muted);min-width:44px}
+.diff{border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.diff b{font-size:20px;font-family:var(--display)}
+.diff span{font-size:14px}
+.diff.short{background:var(--bad-soft);color:var(--bad)}
+.diff.extra{background:var(--warn-soft);color:var(--warn)}
+.diff.ok{background:var(--good-soft);color:var(--good)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .btn{flex:1 1 140px}
+.bulk-card{display:grid;grid-template-columns:1fr 104px 40px;gap:6px;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.bulk-card .bn{grid-column:1 / -1}
+.bulk-card input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;font-size:16px;min-height:44px}
+.bulk-card .bw{display:flex;align-items:center;gap:4px}
+.bulk-card .bw input{text-align:right;font-weight:700}
+.bulk-card .bw span{font-size:12px;color:var(--muted)}
+.bulk-card .x{min-height:44px;padding:0;border-radius:10px}
+.empty{text-align:center;padding:28px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty h3{font-size:20px}
+.actions{display:flex;flex-direction:column;gap:8px}
+
+.p-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;font:inherit}
+.p-row .who{flex:1;min-width:0}
+.p-row .who b{display:block;font-size:17px;overflow-wrap:anywhere}
+.p-row .who span{font-size:14px;color:var(--muted)}
+
+.field{display:flex;flex-direction:column;gap:4px}
+.field label,.field .lbl{font-size:14px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:17px;min-height:46px}
+.field textarea{min-height:120px;font-size:15px;line-height:1.5;resize:vertical}
+.field .help{font-size:13px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;cursor:pointer;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.calc{background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:10px 12px;font-weight:700;display:flex;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
+.err{color:var(--bad);font-size:14px;font-weight:600}
+.rate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sec h3{font-size:19px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs button{background:none;border:0;padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;min-height:58px}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-current="page"]{color:var(--accent)}
+
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(10,14,25,.5);display:flex;align-items:flex-end;justify-content:center}
+.scrim[hidden]{display:none}
+.sheet{background:var(--surface);width:100%;max-width:600px;max-height:92%;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.sheet-h{display:flex;align-items:center;gap:8px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.sheet-h h3{flex:1;font-size:21px}
+.sheet-b{padding:14px 16px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.sheet-f{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.sheet-f .btn{flex:1}
+.send-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;max-width:90%;text-align:center}
+.toast[hidden]{display:none}
+@media (max-width:340px){.stats{grid-template-columns:1fr 1fr}.send-row{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><div class="top-in">
+    <div class="brand"><h1 id="appName">Masu Hisab</h1><p id="appSub">Village meat cutting accounts</p></div>
+    <button class="btn lang-btn" id="langBtn" type="button">नेपाली</button>
+  </div></header>
+  <main id="main" aria-live="polite"></main>
+  <nav class="tabs" aria-label="Main"><div class="tabs-in">
+    <button type="button" data-tab="home" id="tab-home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span></span></button>
+    <button type="button" data-tab="people" id="tab-people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.4 3.5 5.2"/></svg><span></span></button>
+    <button type="button" data-tab="guess" id="tab-guess"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M12 12v3l2 1"/></svg><span></span></button>
+    <button type="button" data-tab="sales" id="tab-sales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span></span></button>
+    <button type="button" data-tab="settings" id="tab-settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span></span></button>
+  </div></nav>
+</div>
+<div class="scrim" id="scrim" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheet"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Words in both languages ---------- */
+const GT = {
+  en:{khasi:'Khasi',boka:'Boka',bakhri:'Bakhri',pathi:'Pathi',patho:'Patho'},
+  ne:{khasi:'खसी',boka:'बोका',bakhri:'बाख्री',pathi:'पाठी',patho:'पाठो'}
+};
+const GOAT_TYPES = ['khasi','boka','bakhri','pathi','patho'];
+const UNIT_OF = {goat:'kg', pig:'dharni', buffalo:'bhag'};
+const UNITS = {en:{kg:'kg',dharni:'dharni',bhag:'bhag'}, ne:{kg:'केजी',dharni:'धार्नी',bhag:'भाग'}};
+const MONTHS = {
+  en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  ne:['जनवरी','फेब्रुअरी','मार्च','अप्रिल','मे','जुन','जुलाई','अगस्ट','सेप्टेम्बर','अक्टोबर','नोभेम्बर','डिसेम्बर']
+};
+const T = {
+  en:{
+    app:'Masu Hisab', sub:'Village meat cutting accounts', langBtn:'नेपाली',
+    tabHome:'Cuttings', tabPeople:'People', tabSettings:'Settings',
+    stillToCollect:'Still to collect', fromN:(n,c)=>`from ${n} ${n===1?'person':'people'} · ${c} ${c===1?'cutting':'cuttings'}`,
+    newCutting:'New cutting', editCutting:'Edit cutting',
+    noCuttings:'No cuttings yet', noCuttingsHelp:'When an animal is cut, tap "New cutting" and add each person who takes meat.',
+    loadExample:'Try with example data', example:'Example',
+    owner:'Owner', rateWord:'Rate', receivedOf:(a,b)=>`Received ${a} of ${b}`, dueX:x=>`Due ${x}`, allPaid:'All paid',
+    totalMeat:'Total meat', given:'Given out', remaining:'Left', notWeighed:'not weighed',
+    totalAmount:'Total amount', received:'Received', due:'Still due', expenses:'Expenses', ownerNet:'Owner gets after expenses',
+    peopleTook:n=>`${n} ${n===1?'person':'people'} took meat`, overGiven:'More meat given than the total. Check the weights.',
+    all:'All', unpaid:'Not paid', paid:'Paid', partial:'Part paid',
+    addPerson:'Add person who took meat', markPaid:'Paid', remind:'Remind',
+    remindAll:n=>`Remind all who haven't paid (${n})`, shareSummary:'Send summary to owner', deleteCutting:'Delete this cutting',
+    confirmDeleteCutting:'This deletes the cutting and every name in it. Are you sure?',
+    cancel:'Cancel', del:'Delete', save:'Save', back:'Back', edit:'Edit', close:'Close',
+    name:'Name', phone:'Phone number', quantity:'How much meat', amount:'Amount', customAmount:'Type the amount myself',
+    payment:'Payment', notPaid:'Not paid', paidFull:'Paid in full', partPaid:'Paid some', paidAmount:'Amount paid (Rs.)',
+    method:'Paid by', cash:'Cash', esewa:'eSewa', khalti:'Khalti', bank:'Bank', note:'Note (optional)',
+    animal:'Animal', goat:'Goat', pig:'Pig', buffalo:'Buffalo', goatType:'Goat type', date:'Date',
+    ownerName:"Owner's name", ownerPhone:"Owner's phone",
+    totalQty:u=>`Total meat (${u})`, totalQtyHelp:'Leave empty now. Enter it after cutting and weighing.',
+    ratePer:u=>`Price per ${u} (Rs.)`, bhagHelper:'Or type the total price for all bhag', totalPrice:'Total price (Rs.)',
+    perBhagIs:x=>`Each bhag: ${x}`, expensesOpt:'Expenses such as the butcher (optional)', rateFromSettings:'Filled from your rate list in Settings',
+    message:'Message', sms:'SMS', whatsapp:'WhatsApp', copy:'Copy', copied:'Copied',
+    opensApp:'SMS and WhatsApp open your phone app with this message ready. Press send there.',
+    noPhone:'No phone number saved. Add one by tapping the name, or copy the message.',
+    to:'To', next:'Next', done:'Done', ofN:(i,n)=>`${i} of ${n}`, remindTitle:'Send reminder', summaryTitle:'Summary for owner',
+    search:'Search name', addContact:'Add person', editContact:'Edit person', personDues:'Meat taken',
+    timesTook:n=>`took meat ${n} ${n===1?'time':'times'}`, noDues:'Nothing due', remindAllDues:'Send reminder for all dues',
+    deleteContact:'Delete person', cannotDelete:'This person has records, so they cannot be deleted.', noPeople:'No people yet. They are added when you record who took meat.',
+    uiLang:'App language', msgLang:'Message language', both:'Both', english:'English', nepali:'नेपाली',
+    rates:'Rate list', ratesHelp:'These are example rates. Put your village rates here. New cuttings use them automatically.',
+    goatRates:'Goat (per kg)', pigRate:'Pig (per dharni)', bhagRate:'Buffalo (per bhag)',
+    backup:'Backup', backupHelp:'Copy all records and keep them safe, for example in a WhatsApp message to yourself. My sales are included without photos.',
+    copyBackup:'Copy backup', restore:'Restore a backup', restoreHelp:'Paste a backup you copied earlier. It is added to the records here.',
+    restoreBtn:'Restore', restored:'Backup restored', restoreError:'Could not read that backup. Paste the whole text.',
+    localMode:'Records are saved on this phone only. Copy a backup in Settings so nothing is lost.',
+    offline:"Can't reach your saved records right now. Showing the copy on this phone.",
+    saveError:"Couldn't save. Check the internet and try again.",
+    nameReq:'Type a name.', qtyReq:'Type how much meat.', saved:'Saved', storageCloud:'Records are saved to your Claude account.',
+    storageLocal:'Records are saved on this phone only.', unpaidList:'Not paid yet', nobodyUnpaid:'Everyone has paid.',
+    addNames:'Add names', newNames:'Type new names', addRow:'+ Another row', savedPeople:'Or pick people saved before',
+    fromLast:'Everyone from last cutting', clearPick:'Clear', addN:n=>`Add ${n} ${n===1?'name':'names'}`,
+    noNamesGiven:'Type at least one name or pick someone.', added:n=>`Added ${n} ${n===1?'name':'names'}`,
+    skipped:n=>`${n} already on the list`, noMeatYet:'No amount yet', noMeat:'No amount', waiting:n=>`${n} waiting for meat`,
+    colName:'Name', colMeat:'Meat', colPaid:'Paid', addMeatFirst:'Enter how much this person gets first.',
+    markedPaid:'Marked paid', markedUnpaid:'Marked not paid', paidOk:'paid', dueShort:'due', namesHelp:'Add everyone and how much they want. After cutting, enter the real weight to compare and correct shares. Then tick ✓ when they pay in full.',
+    meatOptional:'Leave empty if not decided yet', payAfterMeat:'Payment can be marked after the meat is weighed and this share is set.',
+    nameCol:'Name', phoneOpt:'Phone (optional)', allSaved:'Everyone saved is already on this list.',
+    pmRefChoose:'What to use for size', pmRefCoin:'Rs 1 coin', pmRefPerson:'Person beside it', pmRefStick:'Stick',
+    pmHowCoin:'A helper holds the coin flat against the side of the animal, facing the phone. Stand as close as you can while the whole animal still fits, straight from the side, phone at belly height. Zoom in and tap the middle of the coin; the app finds its edge.',
+    pmHowPerson:'A person stands straight right beside the animal, in the same line from the phone. Take the photo straight from the side. Then tap the top of their head and the ground at their feet.',
+    pmCoinMm:'Coin size (mm)', pmCoinHelp:'The current Rs 1 coin is 20 mm. Older big Rs 1 coins are about 28 mm.',
+    pmPersonCm:"Person's height (cm)", pmPersonHelp:'Measure it once against a wall. Barefoot, standing straight.',
+    pmFrontHowP:'From the front, with the same person standing beside the animal. Tap their head and feet, then the left and right side of the chest just behind the front legs.',
+    pmCoinTap:'the middle of the coin (zoom in first)', pmCoinLeft:'the left edge of the coin', pmCoinRight:'the right edge of the coin',
+    pmHead:'top of the person\'s head', pmFeet:'the ground at the person\'s feet', pmTapRef:x=>`Tap ${x}`,
+    pmCoinLooking:'Finding the coin…', pmCoinFound:'Coin found', pmCoinFail:'Could not find the coin edge. Zoom in and tap its left and right edge.', pmZoomX:x=>`Zoom ×${x}`,
+    pmTitle:'Measure from a photo', pmBadge:'No internet needed',
+    pmHow:'Hold a stick of known length flat against the side of the animal. Stand 3 to 4 steps away with the phone at belly height, straight from the side, and take the photo. Then tap the points on the photo.',
+    pmRef:'Length of the stick (cm)', pmRefHelp:'For example: 1-metre stick = 100, A4 paper long side = 29.7.',
+    pmSide:'Side photo', pmFront:'Front photo (optional, more accurate)',
+    pmFrontHow:'From the front, with the same stick held across the chest. Tap both ends of the stick, then the left and right side of the chest just behind the front legs.',
+    pmTake:'Take side photo', pmTakeFront:'Take front photo', pmRetake:'Take a new photo',
+    pmTapNext:(i,n,l)=>`Tap ${i} of ${n}: ${l}`, pmDone:'All points placed. Use Undo to fix one.',
+    pmUndo:'Undo', pmClear:'Start again', pmZoom:'Zoom in', pmZoomOut:'Fit to screen',
+    pmRefStart:'one end of the stick', pmRefEnd:'the other end of the stick', pmShoulder:'point of the shoulder', pmPin:'pin bone at the back end',
+    pmEars:'between the ears', pmTail:'base of the tail', pmBack:'top of the back, just behind the shoulder', pmBelly:'bottom of the chest, just behind the front legs',
+    pmLeft:'left side of the chest', pmRight:'right side of the chest',
+    pmMeasured:'Measured from the photo', pmLength:'Body length', pmDepth:'Chest depth', pmWidth:'Chest width', pmGirth:'Chest girth (worked out)',
+    pmTypical:'typical shape; add a front photo to measure it', pmCalTitle:'Make photo measuring more accurate',
+    pmCalHow:'Tip: measure one animal with the tape as well. The app can then correct future photo results for this animal type.',
+    pmCalCompare:(a,b)=>`Tape girth ${a}, photo girth ${b}.`, pmCalSave:'Correct future photo results with the tape', pmCalSaved:'Correction saved',
+    pmCalOn:x=>`Tape correction in use (×${x})`, pmCalReset:'Remove', pmBadPhoto:'Could not open that photo. Try another one.',
+    payments:'Payments', noPayments:'No payment yet.', addPayment:'Add payment', payAmount:'Amount (Rs.)', earlier:'earlier', paymentSaved:'Payment saved', lastPayRemoved:'Last payment removed', enterAmount:'Enter an amount.',
+    loading:'Loading…', fileBackup:'Save a backup file (with photos)', restoreFromFile:'Restore from a backup file',
+    tabSales:'My sales', slTitle:'My sales', slSub:'Every animal you have sold, alive or as meat, with photos, weight and money. Only you can see your records.',
+    slPrivate:'Your own records. Only you can see them.', slLocal:'Saved on this phone only. Sign in to Claude to keep them in your account.', slYou:'You',
+    slEarned:'Money earned', slCount:n=>`${n} ${n===1?'animal':'animals'} sold`, slLiveShort:'live', slMeatShort:'meat',
+    slAdd:'Add a sale', slEdit:'Edit sale', slByAnimal:'By animal', slByYear:'By year', slByMonth:'By month',
+    slEmpty:'No sales yet', slEmptyHelp:'Add each animal you sell. You can also save one from a cutting or from Weight guess.',
+    slAlive:'Sold alive', slCut:'Cut and sold as meat', slSoldHow:'How it was sold', slChicken:'Chicken', slOther:'Other', slOtherName:'Which animal',
+    slPhotos:'Photos (up to 2)', slAddPhoto:'Take or choose a photo', slMeatSold:u=>`Meat sold (${u})`, slLiveKg:'Live weight (kg)', slLiveOpt:'Live weight (kg, optional)',
+    slHow:'How the weight was found', slHow_none:'Not known', slHow_scale:'Weighed on a scale', slHow_tape:'Tape measure', slHow_photo:'Photo measure', slHow_guess:'Guess',
+    slMoney:'Money received (Rs.)', slPerLiveKg:x=>`${x} per live kg`, slPerLiveKgL:'Price per live kg', slPerUnit:(x,u)=>`${x} per ${u} of meat`,
+    slBuyer:'Sold to (optional)', slNeedSomething:'Enter the money or the weight.', slConfirmDel:'Delete this sale from your records?',
+    slSaveCutting:'Save to my sales (if this animal was mine)', slSaveGuess:'Save to my sales as sold alive', slFromCutting:'From a cutting in Masu Hisab',
+    slStorageFull:'This phone is out of space for photos. Remove some photos or sign in to Claude.',
+    gMethod:'Method', mPhoto:'Photo measure', mTape:'Tape', mAI:'AI guess', priceSettings:'Meat yield and prices',
+    ownerPay:'How to pay the owner (optional)', ownerPayPh:'eSewa 98XXXXXXXX', payTo:x=>`Pay to: ${x}.`,
+    dateStyle:'Dates', dateBS:'Nepali (BS)', dateAD:'English (AD)',
+    tabGuess:'Weight guess', guessTitle:'Guess the weight', guessSub:'For selling live animals or crops. A guess is never exact, so use a scale when you can.',
+    gAnimal:'Live animal', gCrop:'Vegetables & crops', sheep:'Sheep',
+    tapeTitle:'Measure with a tape', tapeBadge:'Most accurate',
+    tapeHowA:'1 Girth: put the tape round the chest just behind the front legs. 2 Length: from the point of the shoulder to the pin bone at the back.',
+    tapeHowP:'1 Girth: put the tape round the chest just behind the front legs. 2 Length: along the back from between the ears to the base of the tail.',
+    girth:'Girth around chest', length:'Body length', unitCm:'cm', unitIn:'inch',
+    photoTitle:'Guess from a photo (AI)', photoBadge:'Rough guess',
+    photoHow:'Take a clear side photo of the whole animal standing. Something of known size nearby (a person, a door, a 1-litre bottle) helps a lot.',
+    photoHowCrop:'Take one photo of the whole pile or basket from above and one from the side. Put something of known size next to it.',
+    takePhoto:'Take or choose photos (up to 3)', removePhoto:'Remove photo', notePh:'Age, breed, how many pieces, basket size…',
+    askAI:'Guess the weight', thinking:'Looking at the photo…', stop:'Stop',
+    aiNeedsClaude:'Photo guessing works when you open Masu Hisab inside Claude, signed in. The tape method works everywhere.',
+    aiUsage:'Uses your Claude account. Photos are sent only when you tap the button.',
+    liveWeight:'Live weight', weightW:'Weight', meatYield:'Meat yield (%)', meatEst:'Meat', meatValue:'Meat value at your rate',
+    livePrice:'Live price per kg (Rs.)', liveValue:'Value if sold live', bhagCount:'How many bhag (optional)', perBhag:'Each bhag', about:'about',
+    confidence:'How sure', confLow:'Not sure', confMed:'Fairly sure', confHigh:'Quite sure', seen:'The AI sees', why:'Why', better:'For a better guess',
+    checkMeasure:'These numbers look wrong. Check the measurements.', shareResult:'Share this guess', guessDisclaimer:'Estimate only. Weigh on a scale before the final sale.',
+    item:'Item', count:'Count', cropValue:'Price per kg (Rs., optional)', cropValueOut:'Value',
+    errDeclined:'The AI was not allowed. You can still use the tape method.', errBusy:'Too many tries. Wait a minute and try again.',
+    errPhoto:'That photo could not be used. Try a different one.', errOther:'Something went wrong. Try again.', noPhoto:'Add at least one photo.',
+    notAnimal:'The AI could not see it clearly in the photo. Try another photo.', dharniKg:'1 dharni = how many kg', yieldHelp:'Meat yield is the share of live weight that becomes meat. Set it to what your village usually gets.',
+    peopleN:n=>`${n} ${n===1?'person':'people'}`, stepOrders:'Names & orders', stepWeigh:'Weigh & compare', stepPay:'Payments',
+    ordersTotal:'Orders total', actualMeat:'Actual meat after cutting', sharedNow:'Shared out now',
+    shortBy:x=>`${x} short`, extraBy:x=>`${x} extra`, matches:'Matches the orders',
+    shortHelp:'There is less meat than ordered. Adjust everyone, or lower some amounts in the list.',
+    extraHelp:'There is more meat than ordered. Share it out, raise some amounts in the list, or the owner keeps it.',
+    matchHelp:'Every share is set. Now mark payments with the tick.',
+    adjustAll:'Adjust everyone to match', adjustHelp:"Each person's share changes in proportion to their order.",
+    backToOrders:'Back to orders', adjusted:'Shares adjusted', restored2:'Back to the orders',
+    notWeighedHelp:'After cutting, weigh the meat and enter the total here to compare with the orders.',
+    weighFirst:'Enter the actual meat weight first, then mark payments.', colWants:'Wants', colGets:'Gets',
+    wanted:x=>`wanted ${x}`, wantsCol:'Wants', estimated:'Estimated from orders', ordered:'Ordered',
+    wantsLabel:u=>`How much they want (${u})`, getsLabel:u=>`How much they get (${u})`
+  },
+  ne:{
+    app:'मासु हिसाब', sub:'गाउँको मासु काटाइको हिसाब', langBtn:'English',
+    tabHome:'हिसाब', tabPeople:'मानिस', tabSettings:'सेटिङ',
+    stillToCollect:'उठाउन बाँकी', fromN:(n,c)=>`${n} जनाबाट · ${c} वटा हिसाब`,
+    newCutting:'नयाँ हिसाब', editCutting:'हिसाब सच्याउनुहोस्',
+    noCuttings:'अहिलेसम्म कुनै हिसाब छैन', noCuttingsHelp:'पशु काट्दा "नयाँ हिसाब" थिच्नुहोस् र मासु लिने सबैको नाम थप्नुहोस्।',
+    loadExample:'उदाहरण हिसाब हेर्नुहोस्', example:'उदाहरण',
+    owner:'मालिक', rateWord:'दर', receivedOf:(a,b)=>`${b} मध्ये ${a} उठ्यो`, dueX:x=>`बाँकी ${x}`, allPaid:'सबैले तिरे',
+    totalMeat:'जम्मा मासु', given:'बाँडिएको', remaining:'बाँकी मासु', notWeighed:'नजोखेको',
+    totalAmount:'जम्मा रकम', received:'उठेको', due:'उठ्न बाँकी', expenses:'खर्च', ownerNet:'खर्च कटाएर मालिकलाई',
+    peopleTook:n=>`${n} जनाले मासु लिए`, overGiven:'जम्मा भन्दा बढी मासु बाँडियो। तौल जाँच्नुहोस्।',
+    all:'सबै', unpaid:'नतिरेको', paid:'तिरेको', partial:'केही तिरेको',
+    addPerson:'मासु लिने व्यक्ति थप्नुहोस्', markPaid:'तिर्यो', remind:'सम्झाउने',
+    remindAll:n=>`नतिरेका सबैलाई सम्झाउनुहोस् (${n})`, shareSummary:'मालिकलाई हिसाब पठाउनुहोस्', deleteCutting:'यो हिसाब मेटाउनुहोस्',
+    confirmDeleteCutting:'यो हिसाब र यसका सबै नाम मेटिन्छन्। पक्का हो?',
+    cancel:'रद्द', del:'मेटाउनुहोस्', save:'सेभ गर्नुहोस्', back:'पछाडि', edit:'सच्याउनुहोस्', close:'बन्द',
+    name:'नाम', phone:'फोन नम्बर', quantity:'कति मासु', amount:'रकम', customAmount:'रकम आफैं लेख्छु',
+    payment:'भुक्तानी', notPaid:'तिरेको छैन', paidFull:'पूरै तिर्यो', partPaid:'केही तिर्यो', paidAmount:'तिरेको रकम (रु.)',
+    method:'कसरी तिर्यो', cash:'नगद', esewa:'eSewa', khalti:'Khalti', bank:'बैंक', note:'टिप्पणी (ऐच्छिक)',
+    animal:'पशु', goat:'खसी/बाख्रा', pig:'सुँगुर', buffalo:'राँगा/भैंसी', goatType:'बाख्राको किसिम', date:'मिति',
+    ownerName:'मालिकको नाम', ownerPhone:'मालिकको फोन',
+    totalQty:u=>`जम्मा मासु (${u})`, totalQtyHelp:'अहिले खाली छोड्नुहोस्। काटेर जोखेपछि लेख्नुहोस्।',
+    ratePer:u=>`प्रति ${u} मूल्य (रु.)`, bhagHelper:'वा सबै भागको जम्मा मूल्य लेख्नुहोस्', totalPrice:'जम्मा मूल्य (रु.)',
+    perBhagIs:x=>`एक भाग: ${x}`, expensesOpt:'खर्च, जस्तै कसाई (ऐच्छिक)', rateFromSettings:'सेटिङको दर सूचीबाट आएको',
+    message:'सन्देश', sms:'SMS', whatsapp:'WhatsApp', copy:'कपी', copied:'कपी भयो',
+    opensApp:'SMS र WhatsApp ले तपाईंको फोनको एप यो सन्देशसहित खोल्छ। त्यहाँ Send थिच्नुहोस्।',
+    noPhone:'फोन नम्बर छैन। नाममा थिचेर नम्बर थप्नुहोस्, वा सन्देश कपी गर्नुहोस्।',
+    to:'लाई', next:'अर्को', done:'सकियो', ofN:(i,n)=>`${n} मध्ये ${i}`, remindTitle:'सम्झाउने सन्देश', summaryTitle:'मालिकलाई हिसाब',
+    search:'नाम खोज्नुहोस्', addContact:'व्यक्ति थप्नुहोस्', editContact:'व्यक्ति सच्याउनुहोस्', personDues:'लिएको मासु',
+    timesTook:n=>`${n} पटक मासु लिएको`, noDues:'बाँकी छैन', remindAllDues:'सबै बाँकीको सन्देश पठाउनुहोस्',
+    deleteContact:'व्यक्ति मेटाउनुहोस्', cannotDelete:'यो व्यक्तिको हिसाब भएकोले मेटाउन मिल्दैन।', noPeople:'अहिलेसम्म कोही छैन। मासु लिनेको नाम राख्दा यहाँ आफैं थपिन्छ।',
+    uiLang:'एपको भाषा', msgLang:'सन्देशको भाषा', both:'दुवै', english:'English', nepali:'नेपाली',
+    rates:'दर सूची', ratesHelp:'यी उदाहरण दर हुन्। आफ्नो गाउँको दर राख्नुहोस्। नयाँ हिसाबमा यही दर आफैं आउँछ।',
+    goatRates:'खसी/बाख्रा (प्रति केजी)', pigRate:'सुँगुर (प्रति धार्नी)', bhagRate:'राँगा/भैंसी (प्रति भाग)',
+    backup:'ब्याकअप', backupHelp:'सबै हिसाब कपी गरेर सुरक्षित राख्नुहोस्, जस्तै आफैंलाई WhatsApp मा पठाएर। मेरो बिक्री फोटोबिना समावेश हुन्छ।',
+    copyBackup:'ब्याकअप कपी गर्नुहोस्', restore:'ब्याकअप फर्काउनुहोस्', restoreHelp:'पहिले कपी गरेको ब्याकअप यहाँ पेस्ट गर्नुहोस्। यो यहाँको हिसाबमा थपिन्छ।',
+    restoreBtn:'फर्काउनुहोस्', restored:'ब्याकअप फर्कियो', restoreError:'ब्याकअप पढ्न सकिएन। पूरै पाठ पेस्ट गर्नुहोस्।',
+    localMode:'हिसाब यो फोनमा मात्र सेभ हुँदैछ। केही नहराओस् भनेर सेटिङमा ब्याकअप कपी गर्नुहोस्।',
+    offline:'सेभ भएको हिसाब अहिले पुग्न सकिएन। यो फोनमा भएको प्रति देखाउँदै।',
+    saveError:'सेभ हुन सकेन। इन्टरनेट जाँचेर फेरि प्रयास गर्नुहोस्।',
+    nameReq:'नाम लेख्नुहोस्।', qtyReq:'कति मासु लियो लेख्नुहोस्।', saved:'सेभ भयो', storageCloud:'हिसाब तपाईंको Claude खातामा सेभ हुन्छ।',
+    storageLocal:'हिसाब यो फोनमा मात्र सेभ हुन्छ।', unpaidList:'नतिरेकाहरू', nobodyUnpaid:'सबैले तिरिसके।',
+    addNames:'नामहरू थप्नुहोस्', newNames:'नयाँ नाम लेख्नुहोस्', addRow:'+ अर्को लाइन', savedPeople:'वा पहिले राखेका मानिस छान्नुहोस्',
+    fromLast:'अघिल्लो हिसाबका सबै', clearPick:'हटाउनुहोस्', addN:n=>`${n} नाम थप्नुहोस्`,
+    noNamesGiven:'कम्तीमा एउटा नाम लेख्नुहोस् वा छान्नुहोस्।', added:n=>`${n} नाम थपियो`,
+    skipped:n=>`${n} जना पहिले नै सूचीमा छन्`, noMeatYet:'माग लेखिएको छैन', noMeat:'नलेखिएको', waiting:n=>`${n} जनालाई मासु दिन बाँकी`,
+    colName:'नाम', colMeat:'मासु', colPaid:'तिर्यो', addMeatFirst:'पहिले यो व्यक्तिले कति पाउने लेख्नुहोस्।',
+    markedPaid:'तिरेको बनाइयो', markedUnpaid:'नतिरेको बनाइयो', paidOk:'तिरेको', dueShort:'बाँकी', namesHelp:'सबैको नाम र कति चाहिन्छ लेख्नुहोस्। काटेपछि वास्तविक तौल लेखेर मिलाउनुहोस्। पूरै तिरेपछि ✓ लगाउनुहोस्।',
+    meatOptional:'थाहा नभए खाली छोड्नुहोस्', payAfterMeat:'मासु जोखेर भाग मिलाएपछि मात्र भुक्तानी राख्न मिल्छ।',
+    nameCol:'नाम', phoneOpt:'फोन (ऐच्छिक)', allSaved:'राखिएका सबै मानिस यो सूचीमा छन्।',
+    pmRefChoose:'साइजका लागि के प्रयोग गर्ने', pmRefCoin:'रु. १ को सिक्का', pmRefPerson:'छेउमा मान्छे', pmRefStick:'लट्ठी',
+    pmHowCoin:'सहयोगीले सिक्का पशुको छेउमा, फोनतिर फर्काएर, टाँसेर समात्ने। पूरै पशु अटाउने गरी सकेसम्म नजिकबाट, ठीक छेउबाट, पेटको उचाइमा फोटो खिच्नुहोस्। ठूलो पारेर सिक्काको बीचमा थिच्नुहोस्; एपले किनारा आफैं भेट्छ।',
+    pmHowPerson:'एक जना मान्छे पशुको ठीक छेउमा, फोनबाट उही लाइनमा, सीधा उभिने। ठीक छेउबाट फोटो खिच्नुहोस्। अनि उनको टाउकोको माथि र खुट्टाको भुइँमा थिच्नुहोस्।',
+    pmCoinMm:'सिक्काको साइज (मिमी)', pmCoinHelp:'अहिलेको रु. १ को सिक्का २० मिमी हो। पुराना ठूला रु. १ का सिक्का करिब २८ मिमी हुन्छन्।',
+    pmPersonCm:'मान्छेको उचाइ (सेमी)', pmPersonHelp:'एक पटक भित्तामा नाप्नुहोस्। खाली खुट्टा, सीधा उभिएर।',
+    pmFrontHowP:'अगाडिबाट, उही मान्छे पशुको छेउमा उभिएर। उनको टाउको र खुट्टा, अनि अगाडिको खुट्टाको ठीक पछाडि छातीको बायाँ र दायाँ छेउ थिच्नुहोस्।',
+    pmCoinTap:'सिक्काको बीचमा (पहिले ठूलो पार्नुहोस्)', pmCoinLeft:'सिक्काको बायाँ किनारा', pmCoinRight:'सिक्काको दायाँ किनारा',
+    pmHead:'मान्छेको टाउकोको माथि', pmFeet:'मान्छेको खुट्टाको भुइँ', pmTapRef:x=>`थिच्नुहोस्: ${x}`,
+    pmCoinLooking:'सिक्का खोज्दै…', pmCoinFound:'सिक्का भेटियो', pmCoinFail:'सिक्काको किनारा भेटिएन। ठूलो पारेर बायाँ र दायाँ किनारा थिच्नुहोस्।', pmZoomX:x=>`ठूलो ×${x}`,
+    pmTitle:'फोटोबाट नाप्नुहोस्', pmBadge:'इन्टरनेट चाहिँदैन',
+    pmHow:'थाहा भएको लम्बाइको लट्ठी पशुको छेउमा तेर्सो गरी टाँसेर समात्नुहोस्। ३-४ पाइला टाढाबाट, पेटको उचाइमा फोन राखेर, ठीक छेउबाट फोटो खिच्नुहोस्। अनि फोटोमा बिन्दुहरू थिच्नुहोस्।',
+    pmRef:'लट्ठीको लम्बाइ (सेमी)', pmRefHelp:'जस्तै: १ मिटरको लट्ठी = १००, A4 कागजको लामो छेउ = २९.७।',
+    pmSide:'छेउको फोटो', pmFront:'अगाडिको फोटो (ऐच्छिक, अझ सही)',
+    pmFrontHow:'अगाडिबाट, उही लट्ठी छातीमा तेर्सो समातेर। लट्ठीका दुवै टुप्पा, अनि अगाडिको खुट्टाको ठीक पछाडि छातीको बायाँ र दायाँ छेउ थिच्नुहोस्।',
+    pmTake:'छेउको फोटो खिच्नुहोस्', pmTakeFront:'अगाडिको फोटो खिच्नुहोस्', pmRetake:'नयाँ फोटो खिच्नुहोस्',
+    pmTapNext:(i,n,l)=>`${n} मध्ये ${i} थिच्नुहोस्: ${l}`, pmDone:'सबै बिन्दु राखियो। मिलाउन "पछाडि फर्कनुहोस्" थिच्नुहोस्।',
+    pmUndo:'पछाडि फर्कनुहोस्', pmClear:'फेरि सुरु', pmZoom:'ठूलो पार्नुहोस्', pmZoomOut:'स्क्रिनमा मिलाउनुहोस्',
+    pmRefStart:'लट्ठीको एउटा टुप्पो', pmRefEnd:'लट्ठीको अर्को टुप्पो', pmShoulder:'काँधको टुप्पो', pmPin:'पछाडि पुट्ठाको हड्डी',
+    pmEars:'दुई कानको बीच', pmTail:'पुच्छरको फेद', pmBack:'काँधको ठीक पछाडि ढाडको माथि', pmBelly:'अगाडिको खुट्टाको ठीक पछाडि छातीको तल',
+    pmLeft:'छातीको बायाँ छेउ', pmRight:'छातीको दायाँ छेउ',
+    pmMeasured:'फोटोबाट नापिएको', pmLength:'जिउको लम्बाइ', pmDepth:'छातीको गहिराइ', pmWidth:'छातीको चौडाइ', pmGirth:'छातीको घेरा (हिसाब गरेको)',
+    pmTypical:'सामान्य आकार मानिएको; नाप्न अगाडिको फोटो थप्नुहोस्', pmCalTitle:'फोटोको नाप अझ सही बनाउनुहोस्',
+    pmCalHow:'सुझाव: एउटा पशुलाई फिताले पनि नाप्नुहोस्। त्यसपछि एपले यो किसिमको पशुको फोटो नाप आफैं सच्याउँछ।',
+    pmCalCompare:(a,b)=>`फिताको घेरा ${a}, फोटोको घेरा ${b}।`, pmCalSave:'अबको फोटो नाप फिताअनुसार सच्याउनुहोस्', pmCalSaved:'सच्याउने मिलान सेभ भयो',
+    pmCalOn:x=>`फिताअनुसार सच्याइएको (×${x})`, pmCalReset:'हटाउनुहोस्', pmBadPhoto:'फोटो खुलेन। अर्को फोटो प्रयास गर्नुहोस्।',
+    payments:'भुक्तानीहरू', noPayments:'अहिलेसम्म केही तिरेको छैन।', addPayment:'भुक्तानी थप्नुहोस्', payAmount:'रकम (रु.)', earlier:'पहिले', paymentSaved:'भुक्तानी सेभ भयो', lastPayRemoved:'पछिल्लो भुक्तानी हटाइयो', enterAmount:'रकम लेख्नुहोस्।',
+    loading:'खुल्दैछ…', fileBackup:'ब्याकअप फाइल सेभ गर्नुहोस् (फोटोसहित)', restoreFromFile:'ब्याकअप फाइलबाट फर्काउनुहोस्',
+    tabSales:'मेरो बिक्री', slTitle:'मेरो बिक्री', slSub:'तपाईंले बेचेका सबै पशु, जिउँदै वा मासु बनाएर, फोटो, तौल र पैसासहित। तपाईंको हिसाब तपाईंले मात्र देख्नुहुन्छ।',
+    slPrivate:'तपाईंको आफ्नै हिसाब। तपाईंले मात्र देख्नुहुन्छ।', slLocal:'यो फोनमा मात्र सेभ हुन्छ। आफ्नो खातामा राख्न Claude मा साइन इन गर्नुहोस्।', slYou:'तपाईं',
+    slEarned:'कमाएको पैसा', slCount:n=>`${n} वटा पशु बेचियो`, slLiveShort:'जिउँदो', slMeatShort:'मासु',
+    slAdd:'बिक्री थप्नुहोस्', slEdit:'बिक्री सच्याउनुहोस्', slByAnimal:'पशुअनुसार', slByYear:'वर्षअनुसार', slByMonth:'महिनाअनुसार',
+    slEmpty:'अहिलेसम्म कुनै बिक्री छैन', slEmptyHelp:'बेचेको हरेक पशु थप्नुहोस्। हिसाब वा तौल अनुमानबाट पनि सेभ गर्न सकिन्छ।',
+    slAlive:'जिउँदै बेचेको', slCut:'काटेर मासु बेचेको', slSoldHow:'कसरी बेचियो', slChicken:'कुखुरा', slOther:'अरू', slOtherName:'कुन पशु',
+    slPhotos:'फोटो (२ सम्म)', slAddPhoto:'फोटो खिच्नुहोस् वा छान्नुहोस्', slMeatSold:u=>`बेचेको मासु (${u})`, slLiveKg:'जिउँदो तौल (केजी)', slLiveOpt:'जिउँदो तौल (केजी, ऐच्छिक)',
+    slHow:'तौल कसरी थाहा भयो', slHow_none:'थाहा छैन', slHow_scale:'तराजुमा जोखेको', slHow_tape:'फिताले नापेको', slHow_photo:'फोटोबाट नापेको', slHow_guess:'अनुमान',
+    slMoney:'पाएको पैसा (रु.)', slPerLiveKg:x=>`जिउँदो प्रति केजी ${x}`, slPerLiveKgL:'जिउँदो प्रति केजी मूल्य', slPerUnit:(x,u)=>`मासु प्रति ${u} ${x}`,
+    slBuyer:'कसलाई बेचेको (ऐच्छिक)', slNeedSomething:'पैसा वा तौल लेख्नुहोस्।', slConfirmDel:'यो बिक्री तपाईंको हिसाबबाट मेटाउने?',
+    slSaveCutting:'मेरो बिक्रीमा राख्नुहोस् (यो पशु मेरो भए)', slSaveGuess:'जिउँदै बेचेको भनी मेरो बिक्रीमा राख्नुहोस्', slFromCutting:'मासु हिसाबको काटाइबाट',
+    slStorageFull:'फोटोका लागि यो फोनमा ठाउँ भएन। केही फोटो हटाउनुहोस् वा Claude मा साइन इन गर्नुहोस्।',
+    gMethod:'तरिका', mPhoto:'फोटो नाप', mTape:'फिता', mAI:'AI अनुमान', priceSettings:'मासु निस्कने र मूल्य',
+    ownerPay:'मालिकलाई कसरी तिर्ने (ऐच्छिक)', ownerPayPh:'eSewa ९८XXXXXXXX', payTo:x=>`भुक्तानी: ${x}।`,
+    dateStyle:'मिति', dateBS:'विक्रम संवत्', dateAD:'अंग्रेजी',
+    tabGuess:'तौल अनुमान', guessTitle:'तौल अनुमान', guessSub:'जिउँदो पशु वा बाली बेच्नका लागि। अनुमान ठ्याक्कै हुँदैन, सकेसम्म तराजुमा जोख्नुहोस्।',
+    gAnimal:'जिउँदो पशु', gCrop:'तरकारी र बाली', sheep:'भेडा',
+    tapeTitle:'फिताले नाप्नुहोस्', tapeBadge:'सबैभन्दा भरपर्दो',
+    tapeHowA:'१ छाती: अगाडिको खुट्टाको ठीक पछाडि छाती वरिपरि फिता घुमाउनुहोस्। २ लम्बाइ: काँधको टुप्पोदेखि पछाडि पुट्ठाको हड्डीसम्म।',
+    tapeHowP:'१ छाती: अगाडिको खुट्टाको ठीक पछाडि छाती वरिपरि। २ लम्बाइ: दुई कानको बीचबाट ढाडै ढाड पुच्छरको फेदसम्म।',
+    girth:'छातीको घेरा', length:'जिउको लम्बाइ', unitCm:'सेमी', unitIn:'इन्च',
+    photoTitle:'फोटोबाट अनुमान (AI)', photoBadge:'मोटामोटी अनुमान',
+    photoHow:'उभिएको पूरै पशुको छेउबाट सफा फोटो खिच्नुहोस्। नजिकै थाहा भएको साइजको चीज (मान्छे, ढोका, १ लिटरको बोतल) भए धेरै मद्दत हुन्छ।',
+    photoHowCrop:'पूरै थुप्रो वा डोकोको माथिबाट एउटा र छेउबाट एउटा फोटो खिच्नुहोस्। छेउमा थाहा भएको साइजको चीज राख्नुहोस्।',
+    takePhoto:'फोटो खिच्नुहोस् वा छान्नुहोस् (३ सम्म)', removePhoto:'फोटो हटाउनुहोस्', notePh:'उमेर, जात, कति वटा, डोकोको साइज…',
+    askAI:'तौल अनुमान गर्नुहोस्', thinking:'फोटो हेर्दै…', stop:'रोक्नुहोस्',
+    aiNeedsClaude:'फोटोबाट अनुमान Claude भित्र साइन इन गरेर मासु हिसाब खोल्दा मात्र चल्छ। फिताको तरिका जहाँ पनि चल्छ।',
+    aiUsage:'तपाईंको Claude खाता प्रयोग हुन्छ। बटन थिचेपछि मात्र फोटो पठाइन्छ।',
+    liveWeight:'जिउँदो तौल', weightW:'तौल', meatYield:'मासु निस्कने (%)', meatEst:'मासु', meatValue:'तपाईंको दरमा मासुको मूल्य',
+    livePrice:'जिउँदो प्रति केजी मूल्य (रु.)', liveValue:'जिउँदै बेच्दा मूल्य', bhagCount:'कति भाग बनाउने (ऐच्छिक)', perBhag:'एक भाग', about:'करिब',
+    confidence:'कति पक्का', confLow:'पक्का छैन', confMed:'केही पक्का', confHigh:'धेरै पक्का', seen:'AI ले देखेको', why:'किन', better:'अझ राम्रो अनुमानका लागि',
+    checkMeasure:'यो नाप मिलेन जस्तो छ। नाप फेरि जाँच्नुहोस्।', shareResult:'यो अनुमान पठाउनुहोस्', guessDisclaimer:'अनुमान मात्र हो। अन्तिम बिक्री अघि तराजुमा जोख्नुहोस्।',
+    item:'चीज', count:'संख्या', cropValue:'प्रति केजी मूल्य (रु., ऐच्छिक)', cropValueOut:'मूल्य',
+    errDeclined:'AI लाई अनुमति दिइएन। फिताको तरिका चलाउन सक्नुहुन्छ।', errBusy:'धेरै पटक प्रयास भयो। एक मिनेट पर्खेर फेरि गर्नुहोस्।',
+    errPhoto:'यो फोटो चलेन। अर्को फोटो प्रयोग गर्नुहोस्।', errOther:'केही गडबड भयो। फेरि प्रयास गर्नुहोस्।', noPhoto:'कम्तीमा एउटा फोटो थप्नुहोस्।',
+    notAnimal:'AI ले फोटोमा स्पष्ट देख्न सकेन। अर्को फोटो प्रयास गर्नुहोस्।', dharniKg:'१ धार्नी = कति केजी', yieldHelp:'जिउँदो तौलको कति प्रतिशत मासु निस्कन्छ। आफ्नो गाउँमा सामान्यतया जति निस्कन्छ त्यही राख्नुहोस्।',
+    peopleN:n=>`${n} जना`, stepOrders:'नाम र माग', stepWeigh:'तौल र मिलान', stepPay:'भुक्तानी',
+    ordersTotal:'जम्मा माग', actualMeat:'काटेपछिको वास्तविक मासु', sharedNow:'अहिले बाँडिएको',
+    shortBy:x=>`${x} कम`, extraBy:x=>`${x} बढी`, matches:'माग र मासु मिल्यो',
+    shortHelp:'मागभन्दा मासु कम छ। सबैको मिलाउनुहोस्, वा सूचीमा केहीको घटाउनुहोस्।',
+    extraHelp:'मागभन्दा मासु बढी छ। सबैलाई बाँड्नुहोस्, सूचीमा केहीको बढाउनुहोस्, वा मालिकले राख्नुहोस्।',
+    matchHelp:'सबैको भाग मिल्यो। अब तिरेपछि ✓ लगाउनुहोस्।',
+    adjustAll:'सबैको मिलाउनुहोस्', adjustHelp:'हरेकको भाग उसको मागको अनुपातमा मिलाइन्छ।',
+    backToOrders:'मागमै फर्काउनुहोस्', adjusted:'भाग मिलाइयो', restored2:'मागमै फर्कियो',
+    notWeighedHelp:'काटेपछि मासु जोखेर जम्मा तौल यहाँ लेख्नुहोस्, मागसँग मिलाउन।',
+    weighFirst:'पहिले वास्तविक मासुको तौल लेख्नुहोस्, अनि भुक्तानी।', colWants:'माग', colGets:'पाउने',
+    wanted:x=>`माग ${x}`, wantsCol:'माग', estimated:'मागअनुसार अनुमानित', ordered:'माग',
+    wantsLabel:u=>`कति चाहिन्छ (${u})`, getsLabel:u=>`कति पाउने (${u})`
+  }
+};
+
+/* ---------- State ---------- */
+const DEFAULT_SETTINGS = {
+  lang:'en', msgLang:'ne',
+  goatRates:{khasi:1400, boka:1300, bakhri:1100, pathi:1200, patho:1200},
+  pigRate:1500, bhagRate:2500,
+  yield:{goat:50, sheep:45, pig:72, buffalo:48}, livePrice:{}, dharniKg:2.4, cropPrice:'', photoCal:{}, coinMm:20, personCm:'', dateStyle:'bs'
+};
+const S = {
+  settings: clone(DEFAULT_SETTINGS), sessions:{}, contacts:{},
+  view:'home', sid:null, filter:'all', search:'',
+  mode:'loading', stale:false
+};
+let db = null;
+const LS_KEY = 'masu-hisab-v1';
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function L(){ return S.settings.lang === 'ne' ? 'ne' : 'en'; }
+function t(k, ...a){ const v = T[L()][k]; return typeof v === 'function' ? v(...a) : (v ?? k); }
+function tl(lang, k, ...a){ const v = T[lang][k]; return typeof v === 'function' ? v(...a) : v; }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function today(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function mergeSettings(x){ const s = clone(DEFAULT_SETTINGS); if (x && typeof x === 'object'){ Object.assign(s, x); s.goatRates = Object.assign({}, DEFAULT_SETTINGS.goatRates, x.goatRates || {}); s.yield = Object.assign({}, DEFAULT_SETTINGS.yield, x.yield || {}); s.livePrice = Object.assign({}, x.livePrice || {}); s.photoCal = Object.assign({}, x.photoCal || {}); } return s; }
+
+/* ---------- Numbers, units, money ---------- */
+const DEV = '०१२३४५६७८९';
+function dig(s, lang){ s = String(s); return (lang || L()) === 'ne' ? s.replace(/[0-9]/g, d => DEV[d]) : s; }
+/* Nepali keyboards type ०-९; treat them like 0-9 everywhere a number or phone is read */
+function asciiDigits(s){ return String(s ?? '').replace(/[०-९]/g, d => String('०१२३४५६७८९'.indexOf(d))).replace(/।/g, '.'); }
+function num(v){ const n = parseFloat(asciiDigits(v).replace(/,/g,'')); return isFinite(n) ? n : 0; }
+function phoneIn(v){ return asciiDigits(v).replace(/[^\d+\- ]/g, '').trim(); }
+function money(n, lang){ lang = lang || L(); return (lang === 'ne' ? 'रु. ' : 'Rs. ') + dig(Math.round(n).toLocaleString('en-IN'), lang); }
+function fracStr(q){
+  q = Math.round(num(q) * 100) / 100;
+  const whole = Math.floor(q + 1e-9), f = Math.round((q - whole) * 100) / 100;
+  const m = {0.25:'¼', 0.5:'½', 0.75:'¾'};
+  if (f === 0) return String(whole);
+  if (m[f]) return (whole ? String(whole) : '') + m[f];
+  return String(q);
+}
+function qtyNum(q, unit){ return unit === 'kg' ? String(Math.round(num(q) * 100) / 100) : fracStr(q); }
+function qtyText(q, unit, lang){ lang = lang || L(); return dig(qtyNum(q, unit), lang) + ' ' + UNITS[lang][unit]; }
+function unitName(unit, lang){ return UNITS[lang || L()][unit]; }
+function rateText(s, lang){
+  lang = lang || L(); const u = unitName(UNIT_OF[s.animal], lang);
+  return lang === 'ne' ? `प्रति ${u} ${money(s.rate, lang)}` : `${money(s.rate, lang)} per ${u}`;
+}
+/* Bikram Sambat: month lengths for BS 2070–2090 (two digits per month), from the MIT-licensed
+   nepali-date-converter table and checked against the bikram-sambat package. BS 2070-01-01 = 14 Apr 2013. */
+const BS_START = Date.UTC(2013, 3, 14);
+const BS_ROWS = ["313131323131293030293030", "313132313131302930293030", "313231323130302930293030", "313231323130303029293031", "313131323131302930293030", "313132313131302930293030", "313231323130303029293030", "313231323130303029302931", "313131323131302930293030", "313132313131302930293030", "313231323130303029293030", "313231323130303029302931", "313132313131302930293030", "313132313131302930293030", "313132313130303029303030", "313231323031303029303030", "303231323130303029303030", "313132313131303029303030", "303132323031303029303030", "303231323130303029303030", "303231323130303029303030"];
+const BS_MONTHS = {
+  en:['Baisakh','Jestha','Asar','Shrawan','Bhadra','Asoj','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'],
+  ne:['बैशाख','जेठ','असार','साउन','भदौ','असोज','कात्तिक','मंसिर','पुस','माघ','फागुन','चैत']
+};
+function toBS(iso){
+  const [y, m, d] = String(iso || '').split('-').map(Number); if (!y) return null;
+  let days = Math.round((Date.UTC(y, m - 1, d) - BS_START) / 864e5); if (days < 0) return null;
+  for (let yi = 0; yi < BS_ROWS.length; yi++) for (let mi = 0; mi < 12; mi++){
+    const len = +BS_ROWS[yi].substr(mi * 2, 2);
+    if (days < len) return {y:2070 + yi, m:mi + 1, d:days + 1};
+    days -= len;
+  }
+  return null;
+}
+function fmtAD(iso, lang){
+  const [y, m, d] = iso.split('-').map(Number); if (!y) return iso;
+  return dig(d, lang) + ' ' + MONTHS[lang][m - 1] + ' ' + dig(y, lang);
+}
+function fmtBS(iso, lang){ const b = toBS(iso); return b ? dig(b.d, lang) + ' ' + BS_MONTHS[lang][b.m - 1] + ' ' + dig(b.y, lang) : fmtAD(iso, lang); }
+function fmtDate(iso, lang){
+  lang = lang || L(); if (!iso) return '';
+  const st = S.settings.dateStyle || 'bs';
+  if (st === 'ad') return fmtAD(iso, lang);
+  if (st === 'both') return fmtBS(iso, lang) + ' (' + fmtAD(iso, lang) + ')';
+  return fmtBS(iso, lang);
+}
+
+/* ---------- Animal words ---------- */
+function animalTitle(s, lang){
+  lang = lang || L();
+  if (s.animal === 'goat') return lang === 'ne' ? GT.ne[s.goatType] : GT.en[s.goatType] + ' goat';
+  return lang === 'ne' ? {pig:'सुँगुर', buffalo:'राँगा/भैंसी'}[s.animal] : {pig:'Pig', buffalo:'Buffalo'}[s.animal];
+}
+function badgeText(s){
+  if (s.animal === 'goat') return GT[L()][s.goatType];
+  return L() === 'ne' ? {pig:'सुँगुर', buffalo:'राँगा'}[s.animal] : {pig:'Pig', buffalo:'Buffalo'}[s.animal];
+}
+function meatName(s, lang){
+  if (lang === 'ne'){
+    const base = s.animal === 'goat' ? GT.ne[s.goatType] : (s.animal === 'pig' ? 'सुँगुर' : 'राँगा');
+    return base + 'को मासु';
+  }
+  if (s.animal === 'goat') return GT.en[s.goatType].toLowerCase() + ' goat meat';
+  return s.animal === 'pig' ? 'pork' : 'buffalo meat';
+}
+function defaultRate(animal, goatType){
+  const st = S.settings;
+  if (animal === 'goat') return num(st.goatRates[goatType]);
+  return animal === 'pig' ? num(st.pigRate) : num(st.bhagRate);
+}
+
+/* ---------- Money logic ---------- */
+function entryAmt(s, e){ return (e.amt !== null && e.amt !== undefined && e.amt !== '') ? Math.round(num(e.amt)) : Math.round(num(e.qty) * num(s.rate)); }
+function entryPaid(e){ return Math.round(num(e.paid)); }
+function entryDue(s, e){ return Math.max(0, entryAmt(s, e) - entryPaid(e)); }
+const STEP = {kg:0.1, dharni:0.25, bhag:0.25};
+function r2(x){ return Math.round(x * 100) / 100; }
+function isWeighed(s){ return num(s.totalQty) > 0; }
+function wantOf(e){ return (e.want !== undefined && e.want !== null && e.want !== '') ? num(e.want) : num(e.qty); }
+function compareMeat(s){
+  const es = s.entries || [];
+  const ordered = r2(es.reduce((a, e) => a + wantOf(e), 0));
+  const given = r2(es.reduce((a, e) => a + num(e.qty), 0));
+  const actual = num(s.totalQty);
+  return {ordered, given, actual, diff:r2(actual - given), changed:es.some(e => r2(num(e.qty)) !== r2(wantOf(e)))};
+}
+function freezeOrders(s){ (s.entries || []).forEach(e => { if (e.want === undefined || e.want === null || e.want === '') e.want = e.qty === '' ? '' : num(e.qty); }); }
+function adjustShares(s){
+  const step = STEP[UNIT_OF[s.animal]];
+  const es = (s.entries || []).filter(e => wantOf(e) > 0);
+  const W = es.reduce((a, e) => a + wantOf(e), 0), A = num(s.totalQty);
+  if (!(W > 0 && A > 0)) return false;
+  freezeOrders(s);
+  const raw = es.map(e => wantOf(e) * A / W);
+  const fl = raw.map(r => Math.floor(r / step + 1e-9) * step);
+  let left = Math.round((A - fl.reduce((a, b) => a + b, 0)) / step);
+  raw.map((r, i) => [r - fl[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (left > 0){ fl[i] += step; left--; } });
+  es.forEach((e, i) => { e.qty = r2(fl[i]); });
+  return true;
+}
+function resetShares(s){ (s.entries || []).forEach(e => { const w = wantOf(e); e.qty = w > 0 ? w : ''; }); }
+function paymentsOf(e){
+  if (Array.isArray(e.payments)) return e.payments;
+  const p = num(e.paid); return p > 0 ? [{amt:Math.round(p), method:e.method || 'cash', date:''}] : [];
+}
+function setPayments(e, list){
+  e.payments = list.map(x => ({amt:Math.round(num(x.amt)), method:x.method || 'cash', date:x.date || ''}));
+  e.paid = e.payments.reduce((a, x) => a + x.amt, 0);
+  if (e.payments.length) e.method = e.payments[e.payments.length - 1].method; else delete e.method;
+}
+function hasMeat(e){ return num(e.qty) > 0 || (e.amt !== null && e.amt !== undefined && e.amt !== '' && num(e.amt) > 0); }
+function entryStatus(s, e){ if (!hasMeat(e)) return 'nomeat'; const a = entryAmt(s, e), p = entryPaid(e); if (p >= a) return 'paid'; if (p > 0) return 'partial'; return 'unpaid'; }
+function totals(s){
+  const r = {given:0, amount:0, received:0, due:0, n:0, nUnpaid:0, nPaid:0, nNoMeat:0, names:0};
+  (s.entries || []).forEach(e => {
+    r.names++;
+    if (!hasMeat(e)){ r.nNoMeat++; r.received += entryPaid(e); return; }
+    r.n++; r.given += num(e.qty); r.amount += entryAmt(s, e); r.received += entryPaid(e);
+    const d = entryDue(s, e); r.due += d; if (d > 0) r.nUnpaid++; else r.nPaid++;
+  });
+  r.given = Math.round(r.given * 100) / 100;
+  r.totalQty = num(s.totalQty);
+  r.left = r.totalQty ? Math.round((r.totalQty - r.given) * 100) / 100 : null;
+  r.net = r.amount - num(s.expenses);
+  return r;
+}
+function sessionList(){
+  return Object.entries(S.sessions).map(([id, s]) => Object.assign({id}, s))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+}
+function personItems(cid){
+  const items = [];
+  sessionList().forEach(s => (s.entries || []).forEach(e => {
+    if (e.cid === cid) items.push({s, e, amt:entryAmt(s, e), paid:entryPaid(e), due:entryDue(s, e)});
+  }));
+  return items;
+}
+
+/* ---------- Messages ---------- */
+function msgEntryOne(s, e, lang){
+  const name = e.name || '', due = entryDue(s, e), amt = entryAmt(s, e), paid = entryPaid(e);
+  const unit = UNIT_OF[s.animal], owner = (s.ownerName || '').trim();
+  if (lang === 'ne'){
+    let m = `नमस्ते ${name} जी, तपाईंले ${fmtDate(s.date,'ne')} मा ${meatName(s,'ne')} ${qtyText(e.qty, unit, 'ne')} लिनुभएको थियो (${rateText(s,'ne')})। जम्मा ${money(amt,'ne')}`;
+    if (paid > 0) m += `, तिरेको ${money(paid,'ne')}`;
+    m += `, बाँकी ${money(due,'ne')}। `;
+    if (s.ownerPay) m += tl('ne', 'payTo', s.ownerPay) + ' ';
+    m += owner ? `कृपया ${owner} जीलाई तिरिदिनुहोला। धन्यवाद।` : 'कृपया छिट्टै तिरिदिनुहोला। धन्यवाद।';
+    return m;
+  }
+  let m = `Namaste ${name} ji, on ${fmtDate(s.date,'en')} you took ${qtyText(e.qty, unit, 'en')} of ${meatName(s,'en')} (${rateText(s,'en')}). Total ${money(amt,'en')}`;
+  if (paid > 0) m += `, paid ${money(paid,'en')}`;
+  m += `. Remaining: ${money(due,'en')}. `;
+  if (s.ownerPay) m += tl('en', 'payTo', s.ownerPay) + ' ';
+  m += owner ? `Please pay ${owner} ji. Thank you.` : 'Please pay soon. Thank you.';
+  return m;
+}
+function msgLangs(){ const m = S.settings.msgLang; return m === 'both' ? ['ne','en'] : [m === 'en' ? 'en' : 'ne']; }
+function msgEntry(s, e){ return msgLangs().map(l => msgEntryOne(s, e, l)).join('\n\n'); }
+function msgPersonOne(c, items, lang){
+  const due = items.filter(i => i.due > 0); const total = due.reduce((a, i) => a + i.due, 0);
+  const lines = due.map(i => {
+    const unit = UNIT_OF[i.s.animal], own = (i.s.ownerName || '').trim();
+    return lang === 'ne'
+      ? `- ${fmtDate(i.s.date,'ne')}: ${meatName(i.s,'ne')} ${qtyText(i.e.qty, unit,'ne')}, बाँकी ${money(i.due,'ne')}${own ? ` (मालिक: ${own})` : ''}`
+      : `- ${fmtDate(i.s.date,'en')}: ${qtyText(i.e.qty, unit,'en')} ${meatName(i.s,'en')}, due ${money(i.due,'en')}${own ? ` (owner: ${own})` : ''}`;
+  }).join('\n');
+  return lang === 'ne'
+    ? `नमस्ते ${c.name} जी, तपाईंको मासुको बाँकी हिसाब:\n${lines}\nजम्मा बाँकी: ${money(total,'ne')}। कृपया छिट्टै तिरिदिनुहोला। धन्यवाद।`
+    : `Namaste ${c.name} ji, your unpaid meat bill:\n${lines}\nTotal due: ${money(total,'en')}. Please pay soon. Thank you.`;
+}
+function msgPerson(c, items){ return msgLangs().map(l => msgPersonOne(c, items, l)).join('\n\n'); }
+function msgSummaryOne(s, lang){
+  const r = totals(s), unit = UNIT_OF[s.animal];
+  const un = (s.entries || []).filter(e => entryDue(s, e) > 0);
+  let m = `${animalTitle(s, lang)} · ${fmtDate(s.date, lang)}\n`;
+  if (s.ownerName) m += `${tl(lang,'owner')}: ${s.ownerName}\n`;
+  m += `${tl(lang,'rateWord')}: ${rateText(s, lang)}\n`;
+  const cm = compareMeat(s);
+  m += `${tl(lang,'ordersTotal')}: ${qtyText(cm.ordered, unit, lang)}\n`;
+  if (r.totalQty) m += `${tl(lang,'actualMeat')}: ${qtyText(r.totalQty, unit, lang)}\n`;
+  m += `${tl(lang,'given')}: ${qtyText(r.given, unit, lang)} (${dig(tl(lang,'peopleTook', r.n), lang)})\n`;
+  m += `${tl(lang,'totalAmount')}: ${money(r.amount, lang)}\n${tl(lang,'received')}: ${money(r.received, lang)}\n${tl(lang,'due')}: ${money(r.due, lang)}\n`;
+  if (num(s.expenses)) m += `${tl(lang,'expenses')}: ${money(num(s.expenses), lang)}\n${tl(lang,'ownerNet')}: ${money(r.net, lang)}\n`;
+  m += '\n' + (un.length ? tl(lang,'unpaidList') + ':\n' + un.map(e => `- ${e.name}: ${money(entryDue(s, e), lang)}`).join('\n') : tl(lang,'nobodyUnpaid'));
+  return m.trim();
+}
+function msgSummary(s){ return msgLangs().map(l => msgSummaryOne(s, l)).join('\n\n'); }
+
+/* ---------- Phone links ---------- */
+function cleanPhone(p){ return asciiDigits(p || '').replace(/[^\d+]/g, ''); }
+function waNum(p){ let d = cleanPhone(p).replace(/^\+/, ''); if (/^9\d{9}$/.test(d)) d = '977' + d; else if (/^0\d{6,}$/.test(d)) d = '977' + d.slice(1); return d; }
+function smsHref(p, m){ return `sms:${cleanPhone(p)}?&body=${encodeURIComponent(m)}`; }
+function waHref(p, m){ const n = waNum(p); return `https://wa.me/${n}?text=${encodeURIComponent(m)}`; }
+
+/* ---------- Saving ---------- */
+function cacheSave(){ try { localStorage.setItem(LS_KEY, JSON.stringify({settings:S.settings, sessions:S.sessions, contacts:S.contacts})); } catch (e) {} }
+function cacheLoad(){
+  try {
+    const j = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+    if (j){ S.settings = mergeSettings(j.settings); S.sessions = j.sessions || {}; S.contacts = j.contacts || {}; }
+  } catch (e) {}
+}
+const queues = {};
+function saveDoc(path, data){
+  cacheSave();
+  if (!db) return;
+  const q = queues[path] || (queues[path] = {running:false, has:false, data:null});
+  q.has = true; q.data = data === null ? null : clone(data);
+  if (q.running) return;
+  q.running = true;
+  (async () => {
+    while (q.has){
+      const d = q.data; q.has = false;
+      try { const ref = db.doc(path); if (d === null) await ref.delete(); else await ref.set(d); }
+      catch (err) {
+        if (err && err.code === 'unavailable'){ await new Promise(r => setTimeout(r, 600 + Math.random() * 900)); try { const ref = db.doc(path); if (d === null) await ref.delete(); else await ref.set(d); } catch (e2) { toast(t('saveError')); } }
+        else toast(t('saveError'));
+      }
+    }
+    q.running = false;
+  })();
+}
+function saveSession(id){ saveDoc('sessions/' + id, S.sessions[id] || null); }
+function saveContact(id){ saveDoc('contacts/' + id, S.contacts[id] || null); }
+function saveSettings(){ saveDoc('app/settings', S.settings); }
+
+async function connect(){
+  let use = null;
+  for (let i = 0; i < 30 && !window.MASU_WEB && !(window.claude && typeof window.claude.use === 'function'); i++) await new Promise(r => setTimeout(r, 100));
+  if (window.claude && typeof window.claude.use === 'function') use = window.claude.use.bind(window.claude);
+  try { db = use ? await use('db') : null; } catch (e) { db = null; }
+  if (!db){ S.mode = 'local'; render(); initSales(); return; }
+  S.mode = 'cloud';
+  initSales();
+  const loaded = {settings:false, sessions:false, contacts:false};
+  const timer = setTimeout(() => { S.stale = true; render(); }, 10000);
+  const mark = (k, snap) => { if (!snap.metadata.fromCache){ loaded[k] = true; if (loaded.settings && loaded.sessions && loaded.contacts){ clearTimeout(timer); if (S.stale){ S.stale = false; } } } };
+  const onErr = () => { clearTimeout(timer); S.stale = true; render(); };
+  db.doc('app/settings').onSnapshot(snap => {
+    if (snap.exists) S.settings = mergeSettings(clone(snap.data()));
+    mark('settings', snap); cacheSave(); applyChrome(); render();
+  }, onErr);
+  db.collection('sessions').onSnapshot(snap => {
+    const o = {}; snap.docs.forEach(d => { o[d.id] = clone(d.data()); });
+    S.sessions = o; mark('sessions', snap); cacheSave(); render();
+  }, onErr);
+  db.collection('contacts').onSnapshot(snap => {
+    const o = {}; snap.docs.forEach(d => { o[d.id] = clone(d.data()); });
+    S.contacts = o; mark('contacts', snap); cacheSave(); render();
+  }, onErr);
+}
+
+/* ---------- Contacts ---------- */
+function findContactByName(name){
+  const n = name.trim().toLowerCase();
+  return Object.entries(S.contacts).find(([, c]) => (c.name || '').trim().toLowerCase() === n);
+}
+function ensureContact(name, phone){
+  phone = phoneIn(phone);
+  const hit = findContactByName(name);
+  if (hit){
+    const [id, c] = hit;
+    if (phone && cleanPhone(phone) !== cleanPhone(c.phone)){ c.phone = phone; saveContact(id); }
+    return id;
+  }
+  const id = uid(); S.contacts[id] = {name:name.trim(), phone:phone || '', createdAt:Date.now()}; saveContact(id); return id;
+}
+
+/* ---------- Example data ---------- */
+function loadExample(){
+  const people = [['Ram Gurung','9846000001'],['Sita Thapa','9846000002'],['Hari Magar','9846000003'],['Maya Pun','9846000004'],['Bikash Rana','']];
+  const ids = people.map(([n, p]) => { const id = uid(); S.contacts[id] = {name:n, phone:p, createdAt:Date.now(), example:true}; saveContact(id); return id; });
+  const ent = (i, want, extra) => Object.assign({id:uid(), cid:ids[i], name:people[i][0], phone:people[i][1], want, qty:want, paid:0}, extra || {});
+  const sid = uid();
+  S.sessions[sid] = {
+    animal:'goat', goatType:'khasi', date:today(), ownerName:'Dil Bahadur', ownerPhone:'9846000009',
+    totalQty:10, rate:1400, expenses:500, note:'', createdAt:Date.now(), example:true,
+    entries:[ent(0, 2.5), ent(1, 2), ent(2, 3), ent(3, 1.5), ent(4, 2)]
+  };
+  saveSession(sid);
+  const pid = uid();
+  S.sessions[pid] = {
+    animal:'pig', goatType:'', date:(d => { d.setDate(d.getDate() - 8); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })(new Date()),
+    ownerName:'Krishna Ale', ownerPhone:'9846000010', totalQty:5.5, rate:1500, expenses:'', note:'', createdAt:Date.now() - 1000, example:true,
+    entries:[ent(0, 2, {paid:1000, method:'cash'}), ent(3, 1.5, {paid:2250, method:'khalti'}), ent(1, 1), ent(2, 1)]
+  };
+  saveSession(pid); render();
+}
+
+/* ---------- UI helpers ---------- */
+const $main = document.getElementById('main');
+const $scrim = document.getElementById('scrim');
+const $sheet = document.getElementById('sheet');
+let toastTimer = null;
+function toast(msg){ const el = document.getElementById('toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2200); }
+function openSheet(title, body, foot){
+  $sheet.innerHTML = `<div class="sheet-h"><h3 id="sheetTitle">${title}</h3><button class="btn ghost" type="button" data-close>${esc(t('close'))}</button></div><div class="sheet-b">${body}</div>${foot ? `<div class="sheet-f">${foot}</div>` : ''}`;
+  $scrim.hidden = false;
+  $sheet.querySelector('[data-close]').onclick = closeSheet;
+  const f = $sheet.querySelector('input:not([type=hidden]),textarea'); if (f && !f.dataset.nofocus) setTimeout(() => { try { f.focus({preventScroll:true}); } catch (e) {} }, 60);
+}
+function closeSheet(){ $scrim.hidden = true; $sheet.innerHTML = ''; }
+$scrim.addEventListener('click', e => { if (e.target === $scrim) closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$scrim.hidden) closeSheet(); });
+function confirmBox(text, yesLabel, onYes){
+  openSheet(esc(yesLabel), `<p style="margin:0">${esc(text)}</p>`,
+    `<button class="btn" type="button" id="cNo">${esc(t('cancel'))}</button><button class="btn danger" type="button" id="cYes">${esc(yesLabel)}</button>`);
+  document.getElementById('cNo').onclick = closeSheet;
+  document.getElementById('cYes').onclick = () => { closeSheet(); onYes(); };
+}
+async function copyText(text, ta){
+  try { await navigator.clipboard.writeText(text); toast(t('copied')); return; } catch (e) {}
+  try { if (ta){ ta.focus(); ta.select(); } const ok = document.execCommand('copy'); toast(ok ? t('copied') : text.slice(0, 40)); } catch (e) {}
+}
+
+function applyChrome(){
+  document.documentElement.lang = L() === 'ne' ? 'ne' : 'en';
+  document.getElementById('appName').textContent = t('app');
+  document.getElementById('appSub').textContent = t('sub');
+  document.getElementById('langBtn').textContent = t('langBtn');
+  document.querySelector('#tab-home span').textContent = t('tabHome');
+  document.querySelector('#tab-people span').textContent = t('tabPeople');
+  document.querySelector('#tab-settings span').textContent = t('tabSettings');
+  document.querySelector('#tab-sales span').textContent = t('tabSales');
+  document.querySelector('#tab-guess span').textContent = t('tabGuess');
+  document.querySelectorAll('.tabs button').forEach(b => {
+    const on = b.dataset.tab === (S.view === 'session' ? 'home' : S.view);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+}
+
+/* ---------- Views ---------- */
+function banners(){
+  let h = '';
+  if (S.mode === 'local') h += `<div class="banner">${esc(t('localMode'))}</div>`;
+  if (S.stale) h += `<div class="banner">${esc(t('offline'))}</div>`;
+  return h;
+}
+function render(){
+  const ae = document.activeElement; let keep = null;
+  if (ae && ae.id && $main.contains(ae) && ae.tagName === 'INPUT' && ae.id !== 'pSearch') keep = {id:ae.id, v:ae.value, a:ae.selectionStart, b:ae.selectionEnd};
+  applyChrome();
+  if (S.view === 'session' && !S.sessions[S.sid]) S.view = 'home';
+  if (S.view === 'home') $main.innerHTML = banners() + viewHome();
+  else if (S.view === 'session') $main.innerHTML = banners() + viewSession(S.sid);
+  else if (S.view === 'people') $main.innerHTML = banners() + viewPeople();
+  else if (S.view === 'guess') $main.innerHTML = viewGuess();
+  else if (S.view === 'sales') $main.innerHTML = viewSales();
+  else $main.innerHTML = banners() + viewSettings();
+  if (S.view === 'people'){
+    const si = document.getElementById('pSearch');
+    if (si){ si.oninput = () => { S.search = si.value; const pos = si.selectionStart; render(); const n = document.getElementById('pSearch'); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }; }
+  }
+  if (S.view === 'settings') bindSettings();
+  if (S.view === 'guess') bindGuess();
+  if (S.view === 'sales') bindSales();
+  if (keep){ const n = document.getElementById(keep.id); if (n){ n.value = keep.v; try { n.focus({preventScroll:true}); n.setSelectionRange(keep.a, keep.b); } catch (e) {} } }
+}
+
+function viewHome(){
+  const list = sessionList();
+  if (!list.length){
+    return `<div class="card empty"><h3>${esc(t('noCuttings'))}</h3><p class="muted" style="margin:0">${esc(t('noCuttingsHelp'))}</p>
+      <button class="btn primary big block" data-act="new-session" type="button">+ ${esc(t('newCutting'))}</button>
+      <button class="btn block" data-act="load-example" type="button">${esc(t('loadExample'))}</button></div>`;
+  }
+  let due = 0; const owing = new Set(); let withDue = 0;
+  list.forEach(s => { const r = totals(s); due += r.due; if (r.due > 0) withDue++; (s.entries || []).forEach(e => { if (entryDue(s, e) > 0) owing.add(e.cid || e.name); }); });
+  const cards = list.map(s => {
+    const r = totals(s), pct = r.amount ? Math.min(100, Math.round(r.received / r.amount * 100)) : 0;
+    return `<button class="card s-card" type="button" data-act="open-session" data-id="${esc(s.id)}">
+      <div class="s-top"><span class="badge">${esc(badgeText(s))}</span><span class="s-title">${esc(animalTitle(s))} · <span class="num">${esc(fmtDate(s.date))}</span></span>${s.example ? `<span class="pill neutral">${esc(t('example'))}</span>` : ''}</div>
+      <div class="s-meta">${s.ownerName ? esc(t('owner')) + ': ' + esc(s.ownerName) + ' · ' : ''}${esc(rateText(s))} · ${esc(t('peopleTook', r.n).replace(/\d+/g, d => dig(d)))}</div>
+      <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+      <div class="s-foot"><span class="num">${esc(t('receivedOf', money(r.received), money(r.amount)))}</span>${r.due > 0 ? `<span class="pill bad num">${esc(t('dueX', money(r.due)))}</span>` : `<span class="pill good">${esc(t('allPaid'))}</span>`}</div>
+    </button>`;
+  }).join('');
+  return `<section class="hero"><span class="lbl">${esc(t('stillToCollect'))}</span><span class="big num">${esc(money(due))}</span><span class="sub">${esc(dig(t('fromN', owing.size, withDue)))}</span></section>
+    <button class="btn primary big block" data-act="new-session" type="button">+ ${esc(t('newCutting'))}</button>
+    <div class="list">${cards}</div>`;
+}
+
+function viewSession(id){
+  const s = Object.assign({id}, S.sessions[id]); const r = totals(s); const unit = UNIT_OF[s.animal];
+  const weighed = isWeighed(s); const cmp = compareMeat(s);
+  const es = (s.entries || []).map((e, i) => ({e, i, st:entryStatus(s, e)}));
+  const counts = {all:es.length, nomeat:es.filter(x => x.st === 'nomeat').length,
+    unpaid:es.filter(x => x.st === 'unpaid' || x.st === 'partial').length, paid:es.filter(x => x.st === 'paid').length};
+  if (S.filter !== 'all' && !counts[S.filter]) S.filter = 'all';
+  const shown = es.filter(x => S.filter === 'all' || (S.filter === 'unpaid' ? (x.st === 'unpaid' || x.st === 'partial') : x.st === S.filter));
+  const pct = r.amount ? Math.min(100, Math.round(r.received / r.amount * 100)) : 0;
+
+  // steps: 1 names & orders, 2 weigh & compare, 3 payments
+  const done1 = es.some(x => x.st !== 'nomeat'), done2 = weighed, done3 = weighed && r.n > 0 && counts.unpaid === 0 && counts.nomeat === 0;
+  const now = !done1 ? 1 : !done2 ? 2 : (cmp.diff < 0 ? 2 : 3);
+  const stepLi = (n, label, done) => `<li class="${done && now !== n ? 'done' : ''} ${now === n ? 'now' : ''}"><b>${done && now !== n ? '✓' : dig(n)}</b><span>${esc(label)}</span></li>`;
+  const steps = `<ol class="steps">${stepLi(1, t('stepOrders'), done1)}${stepLi(2, t('stepWeigh'), done2)}${stepLi(3, t('stepPay'), done3)}</ol>`;
+
+  // compare card
+  let diffBox = '';
+  if (weighed && cmp.given > 0){
+    if (cmp.diff < 0) diffBox = `<div class="diff short"><b>${esc(t('shortBy', qtyText(-cmp.diff, unit)))}</b><span>${esc(t('shortHelp'))}</span></div>`;
+    else if (cmp.diff > 0) diffBox = `<div class="diff extra"><b>${esc(t('extraBy', qtyText(cmp.diff, unit)))}</b><span>${esc(t('extraHelp'))}</span></div>`;
+    else diffBox = `<div class="diff ok"><b>${esc(t('matches'))}</b><span>${esc(t('matchHelp'))}</span></div>`;
+  }
+  const adjBtns = weighed && cmp.ordered > 0 && (cmp.diff !== 0 || cmp.changed)
+    ? `<div class="btn-row">${cmp.diff !== 0 ? `<button class="btn primary" type="button" data-act="adjust">${esc(t('adjustAll'))}</button>` : ''}${cmp.changed ? `<button class="btn" type="button" data-act="reset-orders">${esc(t('backToOrders'))}</button>` : ''}</div>${cmp.diff !== 0 ? `<span class="muted small">${esc(t('adjustHelp'))}</span>` : ''}` : '';
+  const actualVal = s.totalQty === '' || s.totalQty === undefined || s.totalQty === null ? '' : String(s.totalQty);
+  const cmpCard = `<section class="card cmp">
+      <div class="mrow"><span>${esc(t('ordersTotal'))} (${esc(dig(t('peopleN', es.filter(x => wantOf(x.e) > 0).length)))})</span><b>${esc(qtyText(cmp.ordered, unit))}</b></div>
+      ${cmp.changed ? `<div class="mrow"><span>${esc(t('sharedNow'))}</span><b>${esc(qtyText(cmp.given, unit))}</b></div>` : ''}
+      <div class="field"><label for="actualQty">${esc(t('actualMeat'))}</label>
+        <div class="weigh"><input id="actualQty" data-actual="1" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${esc(actualVal)}" placeholder="–"><span>${esc(unitName(unit))}</span></div>
+        ${weighed ? '' : `<span class="help">${esc(t('notWeighedHelp'))}</span>`}</div>
+      ${diffBox}${adjBtns}
+    </section>`;
+
+  const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const rows = shown.map(({e, st}) => {
+    const amt = entryAmt(s, e), due = entryDue(s, e), paid = entryPaid(e);
+    const w = wantOf(e), q = num(e.qty);
+    const wantNote = weighed && w > 0 && r2(w) !== r2(q) ? t('wanted', qtyText(w, unit)) + ' · ' : '';
+    let sub, cls;
+    if (st === 'nomeat'){ sub = t('noMeatYet'); cls = ''; }
+    else if (!weighed){ sub = `${money(amt)} · ${t('estimated')}`; cls = ''; }
+    else if (st === 'paid'){ sub = `${wantNote}${money(amt)} · ${t('paidOk')}`; cls = 'ok'; }
+    else if (st === 'partial'){ sub = `${wantNote}${money(amt)} · ${t('paid')} ${money(paid)} · ${t('dueShort')} ${money(due)}`; cls = 'part'; }
+    else { sub = `${wantNote}${money(amt)} · ${t('dueShort')}`; cls = 'due'; }
+    const qv = (e.qty === '' || e.qty === undefined || e.qty === null) ? '' : String(e.qty);
+    const aria = st === 'paid' ? 'true' : st === 'partial' ? 'mixed' : 'false';
+    const lock = st === 'nomeat' || !weighed;
+    return `<li class="entry st-${weighed ? st : (st === 'nomeat' ? 'nomeat' : 'order')}">
+      <button class="e-main" type="button" data-act="edit-entry" data-eid="${esc(e.id)}"><span class="e-name">${esc(e.name)}</span><span class="e-sub ${cls}">${esc(sub)}</span></button>
+      <span class="e-qty"><input id="q-${esc(e.id)}" data-qty="${esc(e.id)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${esc(qv)}" placeholder="–" aria-label="${esc((weighed ? t('colGets') : t('colWants')) + ' ' + e.name)}"><span>${esc(unitName(unit))}</span></span>
+      <button class="tick" type="button" role="checkbox" aria-checked="${weighed ? aria : 'false'}" ${lock ? 'aria-disabled="true"' : ''} data-act="tick" data-eid="${esc(e.id)}" aria-label="${esc(t('colPaid') + ' ' + e.name)}">${check}</button>
+    </li>`;
+  }).join('');
+  return `<div class="topline"><button class="btn ghost" type="button" data-act="go-home">‹ ${esc(t('back'))}</button><button class="btn ghost" type="button" data-act="edit-session">${esc(t('edit'))}</button></div>
+    <div class="s-head"><h2>${esc(animalTitle(s))} ${s.example ? `<span class="pill neutral">${esc(t('example'))}</span>` : ''}</h2>
+      <p class="num">${esc(fmtDate(s.date))} · ${esc(rateText(s))}${s.ownerName ? ' · ' + esc(t('owner')) + ': ' + esc(s.ownerName) : ''}</p></div>
+    ${steps}
+    ${cmpCard}
+    <button class="btn primary big block" type="button" data-act="add-names">+ ${esc(t('addNames'))}</button>
+    ${es.length ? `<div class="seg four" role="group">
+      <button type="button" data-act="filter" data-f="all" aria-pressed="${S.filter === 'all'}">${esc(t('all'))} ${dig(counts.all)}</button>
+      <button type="button" data-act="filter" data-f="nomeat" aria-pressed="${S.filter === 'nomeat'}">${esc(t('noMeat'))} ${dig(counts.nomeat)}</button>
+      <button type="button" data-act="filter" data-f="unpaid" aria-pressed="${S.filter === 'unpaid'}">${esc(t('unpaid'))} ${dig(weighed ? counts.unpaid : 0)}</button>
+      <button type="button" data-act="filter" data-f="paid" aria-pressed="${S.filter === 'paid'}">${esc(t('paid'))} ${dig(weighed ? counts.paid : 0)}</button></div>
+      <div class="col-head" aria-hidden="true"><span>${esc(t('colName'))}</span><span class="c-meat">${esc(weighed ? t('colGets') : t('colWants'))}</span><span class="c-paid">${esc(t('colPaid'))}</span></div>`
+    : `<p class="muted small" style="margin:0">${esc(t('namesHelp'))}</p>`}
+    <ul class="entries">${rows}</ul>
+    <div class="card money">
+      ${weighed ? '' : `<span class="muted small">${esc(t('estimated'))}</span>`}
+      <div class="mrow"><span>${esc(t('totalAmount'))}</span><b>${esc(money(r.amount))}</b></div>
+      <div class="mrow good"><span>${esc(t('received'))}</span><b>${esc(money(r.received))}</b></div>
+      <div class="mrow bad"><span>${esc(t('due'))}</span><b>${esc(money(r.due))}</b></div>
+      <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+      ${num(s.expenses) ? `<div class="mrow"><span>${esc(t('expenses'))}</span><b>− ${esc(money(num(s.expenses)))}</b></div><div class="mrow total"><span>${esc(t('ownerNet'))}</span><b>${esc(money(r.net))}</b></div>` : ''}
+    </div>
+    <div class="actions">
+      ${weighed && counts.unpaid ? `<button class="btn block" type="button" data-act="remind-all">${esc(t('remindAll', dig(counts.unpaid)))}</button>` : ''}
+      <button class="btn block" type="button" data-act="share-summary">${esc(t('shareSummary'))}</button>
+      <button class="btn block" type="button" data-sl="from-cutting">${esc(t('slSaveCutting'))}</button>
+      <button class="btn danger block" type="button" data-act="delete-session">${esc(t('deleteCutting'))}</button>
+    </div>`;
+}
+
+function viewPeople(){
+  const q = S.search.trim().toLowerCase();
+  const list = Object.entries(S.contacts).map(([id, c]) => {
+    const items = personItems(id); return {id, c, items, due:items.reduce((a, i) => a + i.due, 0)};
+  }).filter(x => !q || (x.c.name || '').toLowerCase().includes(q) || cleanPhone(x.c.phone).includes(q))
+    .sort((a, b) => b.due - a.due || (a.c.name || '').localeCompare(b.c.name || ''));
+  const rows = list.map(x => `<button class="card p-row" type="button" data-act="open-person" data-id="${esc(x.id)}">
+      <span class="who"><b>${esc(x.c.name)}</b><span>${x.c.phone ? esc(x.c.phone) + ' · ' : ''}${esc(t('timesTook', x.items.filter(i => hasMeat(i.e)).length).replace(/\d+/g, d => dig(d)))}</span></span>
+      ${x.due > 0 ? `<span class="pill bad num">${esc(money(x.due))}</span>` : `<span class="pill good">${esc(t('noDues'))}</span>`}
+    </button>`).join('');
+  return `<div class="field"><label for="pSearch">${esc(t('search'))}</label><input id="pSearch" type="search" value="${esc(S.search)}" autocomplete="off"></div>
+    <button class="btn primary block" type="button" data-act="add-contact">+ ${esc(t('addContact'))}</button>
+    <div class="list">${rows || `<p class="muted">${esc(t('noPeople'))}</p>`}</div>`;
+}
+
+function viewSettings(){
+  const st = S.settings;
+  const segBtn = (key, val, label) => `<button type="button" data-set="${key}" data-val="${val}" aria-pressed="${st[key] === val}">${esc(label)}</button>`;
+  return `<section class="card sec"><h3>${esc(t('uiLang'))}</h3>
+      <div class="seg">${segBtn('lang','en',t('english'))}${segBtn('lang','ne',t('nepali'))}</div>
+      <h3>${esc(t('msgLang'))}</h3>
+      <div class="seg">${segBtn('msgLang','ne',t('nepali'))}${segBtn('msgLang','en',t('english'))}${segBtn('msgLang','both',t('both'))}</div>
+      <h3>${esc(t('dateStyle'))}</h3>
+      <div class="seg">${segBtn('dateStyle','bs',t('dateBS'))}${segBtn('dateStyle','ad',t('dateAD'))}${segBtn('dateStyle','both',t('both'))}</div>
+    </section>
+    <section class="card sec"><h3>${esc(t('rates'))}</h3><p class="muted small" style="margin:0">${esc(t('ratesHelp'))}</p>
+      <div class="lbl muted small" style="font-weight:700">${esc(t('goatRates'))}</div>
+      <div class="rate-grid">${GOAT_TYPES.map(g => `<div class="field"><label for="r-${g}">${esc(GT[L()][g])}</label><input id="r-${g}" inputmode="decimal" data-rate="goat" data-g="${g}" value="${esc(st.goatRates[g])}"></div>`).join('')}</div>
+      <div class="row2">
+        <div class="field"><label for="r-pig">${esc(t('pigRate'))}</label><input id="r-pig" inputmode="decimal" data-rate="pig" value="${esc(st.pigRate)}"></div>
+        <div class="field"><label for="r-bhag">${esc(t('bhagRate'))}</label><input id="r-bhag" inputmode="decimal" data-rate="bhag" value="${esc(st.bhagRate)}"></div>
+      </div>
+    </section>
+    <section class="card sec"><h3>${esc(t('backup'))}</h3><p class="muted small" style="margin:0">${esc(S.mode === 'cloud' ? t('storageCloud') : t('storageLocal'))} ${esc(t('backupHelp'))}</p>
+      ${window.MASU_WEB ? `<button class="btn primary block" type="button" id="fileBackup">${esc(t('fileBackup'))}</button>
+        <label class="btn block" for="restoreFile" style="cursor:pointer">${esc(t('restoreFromFile'))}</label><input id="restoreFile" type="file" accept=".json,application/json" hidden>` : ''}
+      <button class="btn block" type="button" id="copyBackup">${esc(t('copyBackup'))}</button>
+      <div class="field"><label for="restoreTa">${esc(t('restore'))}</label><textarea id="restoreTa" placeholder="{ ... }"></textarea><span class="help">${esc(t('restoreHelp'))}</span></div>
+      <button class="btn block" type="button" id="restoreBtn">${esc(t('restoreBtn'))}</button>
+    </section>`;
+}
+function bindSettings(){
+  $main.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { S.settings[b.dataset.set] = b.dataset.val; saveSettings(); render(); });
+  $main.querySelectorAll('[data-rate]').forEach(inp => inp.onchange = () => {
+    const v = num(inp.value);
+    if (inp.dataset.rate === 'goat') S.settings.goatRates[inp.dataset.g] = v;
+    else if (inp.dataset.rate === 'pig') S.settings.pigRate = v; else S.settings.bhagRate = v;
+    saveSettings(); toast(t('saved'));
+  });
+  document.getElementById('copyBackup').onclick = () => copyText(JSON.stringify(backupObject(false)));
+  const bf = document.getElementById('fileBackup'); if (bf) bf.onclick = saveBackupFile;
+  const rf = document.getElementById('restoreFile'); if (rf) rf.onchange = () => { if (rf.files[0]) readBackupFile(rf.files[0]); };
+  document.getElementById('restoreBtn').onclick = () => {
+    const ta = document.getElementById('restoreTa');
+    try {
+      const j = JSON.parse(ta.value);
+      if (!j || typeof j !== 'object' || (!j.sessions && !j.contacts && !j.sales)) throw new Error('bad');
+      Object.entries(j.contacts || {}).forEach(([id, c]) => { S.contacts[id] = c; saveContact(id); });
+      Object.entries(j.sessions || {}).forEach(([id, s]) => { S.sessions[id] = s; saveSession(id); });
+      Object.entries(j.sales || {}).forEach(([id, r]) => { const old = SL.list[id]; SL.list[id] = Object.assign({}, r, {photos:(r.photos && r.photos.length) ? r.photos : ((old && old.photos) || [])}); if (SL.mode === 'cloud') saveDoc(salePath(id), SL.list[id]); });
+      if (j.sales && SL.mode !== 'cloud') salesLocalSave();
+      if (j.settings){ S.settings = mergeSettings(j.settings); saveSettings(); }
+      ta.value = ''; toast(t('restored')); render();
+    } catch (e) { toast(t('restoreError')); }
+  };
+}
+
+/* ---------- Weight guess (tape formula + AI photo) ---------- */
+const G = {mode:'animal', method:'photo', priceOpen:false, animal:'goat', goatType:'khasi', lenUnit:'cm', girth:'', length:'', bhag:'',
+  photos:[], urls:[], note:'', ai:null, aiFor:null, busy:false, err:'', ctl:null};
+let sampleFn = null, sampleImages = false, aiReady = false;
+
+async function initAI(){
+  for (let i = 0; i < 30 && !window.MASU_WEB && !(window.claude && typeof window.claude.use === 'function'); i++) await new Promise(r => setTimeout(r, 100));
+  try {
+    sampleFn = (window.claude && typeof window.claude.use === 'function') ? await window.claude.use('sample') : null;
+    if (sampleFn){ const lim = await sampleFn.limits().catch(() => null); sampleImages = !!(lim && lim.images); }
+  } catch (e) { sampleFn = null; }
+  aiReady = true;
+  if (S.view === 'guess') render();
+}
+
+const TAPE_K = {goat:10838, sheep:10838, buffalo:10838, pig:14450};
+function tapeKg(){
+  let g = num(G.girth), l = num(G.length);
+  if (G.lenUnit === 'in'){ g *= 2.54; l *= 2.54; }
+  if (!(g > 0 && l > 0)) return null;
+  return g * g * l / TAPE_K[G.animal];
+}
+function kgStr(x, lang){ lang = lang || L(); const v = x >= 100 ? Math.round(x) : Math.round(x * 10) / 10; return dig(v.toLocaleString('en-IN'), lang) + ' ' + UNITS[lang].kg; }
+function animalWord(a, lang){ lang = lang || L(); return a === 'sheep' ? tl(lang, 'sheep') : tl(lang, a); }
+
+/* What the meat and money come to, for a live-weight estimate */
+function estimateLines(lo, mid, hi, lang){
+  lang = lang || L(); const a = G.animal, st = S.settings;
+  const y = num(st.yield[a]) / 100;
+  const lines = [];
+  lines.push({k:'liveWeight', v:`${tl(lang,'about')} ${kgStr(mid, lang)}`, sub:`${kgStr(lo, lang)} – ${kgStr(hi, lang)}`, big:true});
+  if (y > 0){
+    const m = mid * y;
+    let sub = `${kgStr(lo * y, lang)} – ${kgStr(hi * y, lang)}`;
+    if (a === 'pig' && num(st.dharniKg) > 0) sub = `${tl(lang,'about')} ${dig(fracStr(Math.round(m / num(st.dharniKg) * 4) / 4), lang)} ${UNITS[lang].dharni} · ` + sub;
+    lines.push({k:'meatEst', v:`${tl(lang,'about')} ${kgStr(m, lang)}`, sub, big:true});
+    let val = null;
+    if (a === 'goat') val = m * num(st.goatRates[G.goatType]);
+    else if (a === 'pig' && num(st.dharniKg) > 0) val = m / num(st.dharniKg) * num(st.pigRate);
+    else if (a === 'buffalo' && num(G.bhag) > 0){
+      lines.push({k:'perBhag', v:`${tl(lang,'about')} ${kgStr(m / num(G.bhag), lang)}`});
+      val = num(G.bhag) * num(st.bhagRate);
+    }
+    if (val) lines.push({k:'meatValue', v:`${tl(lang,'about')} ${money(Math.round(val / 100) * 100, lang)}`});
+  }
+  const lp = num((st.livePrice || {})[a]);
+  if (lp > 0) lines.push({k:'liveValue', v:`${tl(lang,'about')} ${money(Math.round(mid * lp / 100) * 100, lang)}`, sub:`${money(lo * lp, lang)} – ${money(hi * lp, lang)}`});
+  return lines;
+}
+function linesHTML(lines){
+  return lines.map(x => `<div class="mrow ${x.big ? 'total' : ''}"><span>${esc(t(x.k))}${x.sub ? `<br><small class="muted num">${esc(x.sub)}</small>` : ''}</span><b class="num" style="text-align:right">${esc(x.v)}</b></div>`).join('');
+}
+function shareText(lines, source, lang){
+  const head = G.mode === 'crop'
+    ? `${tl(lang,'guessTitle')}: ${(G.ai && G.ai.item) || tl(lang,'gCrop')}`
+    : `${tl(lang,'guessTitle')}: ${G.animal === 'goat' ? GT[lang][G.goatType] : animalWord(G.animal, lang)}`;
+  return [head, `(${source})`, ...lines.map(x => `${tl(lang, x.k)}: ${x.v}${x.sub ? ` (${x.sub})` : ''}`), tl(lang,'guessDisclaimer')].join('\n');
+}
+
+function tapeOutHTML(){
+  const kg = tapeKg();
+  if (kg === null) return '';
+  if (kg < 1 || kg > 1500) return `<p class="err" style="margin:0">${esc(t('checkMeasure'))}</p>`;
+  return `<div class="card money">${linesHTML(estimateLines(kg * 0.9, kg, kg * 1.1))}
+    <p class="muted small" style="margin:0">${esc(t('guessDisclaimer'))}</p>
+    <button class="btn block" type="button" data-g="share-tape">${esc(t('shareResult'))}</button>
+    <button class="btn block" type="button" data-sl="from-guess" data-v="tape">${esc(t('slSaveGuess'))}</button></div>`;
+}
+function aiOutHTML(){
+  if (G.busy) return `<div class="calc" role="status"><span>${esc(t('thinking'))}</span><button class="btn sm" type="button" data-g="stop">${esc(t('stop'))}</button></div>`;
+  if (G.err) return `<p class="err" style="margin:0">${esc(G.err)}</p>`;
+  const r = G.ai; if (!r || G.aiFor !== G.mode + ':' + G.animal) return '';
+  const conf = {low:t('confLow'), medium:t('confMed'), high:t('confHigh')}[r.confidence] || t('confLow');
+  const list = (a) => (Array.isArray(a) ? a : []).slice(0, 3).map(x => `<li>${esc(String(x))}</li>`).join('');
+  const hasKg = num(r.likely_kg) > 0;
+  let body = '';
+  if (!hasKg) body = `<p class="err" style="margin:0">${esc(t('notAnimal'))}</p>`;
+  else if (G.mode === 'crop'){
+    const lo = num(r.low_kg) || num(r.likely_kg), mid = num(r.likely_kg), hi = num(r.high_kg) || num(r.likely_kg);
+    const cp = num(S.settings.cropPrice);
+    body = `<div class="mrow total"><span>${esc(t('item'))}</span><b>${esc(r.item || '')}</b></div>
+      ${num(r.count) > 0 ? `<div class="mrow"><span>${esc(t('count'))}</span><b class="num">${esc(dig(Math.round(num(r.count))))}</b></div>` : ''}
+      <div class="mrow total"><span>${esc(t('weightW'))}<br><small class="muted num">${esc(kgStr(lo) + ' – ' + kgStr(hi))}</small></span><b class="num">${esc(t('about') + ' ' + kgStr(mid))}</b></div>
+      ${cp > 0 ? `<div class="mrow"><span>${esc(t('cropValueOut'))}</span><b class="num">${esc(t('about') + ' ' + money(Math.round(mid * cp / 10) * 10))}</b></div>` : ''}`;
+  } else {
+    const lo = num(r.low_kg) || num(r.likely_kg) * 0.8, mid = num(r.likely_kg), hi = num(r.high_kg) || num(r.likely_kg) * 1.2;
+    body = linesHTML(estimateLines(lo, mid, hi));
+  }
+  return `<div class="card money">
+    ${r.seen ? `<div class="small"><b>${esc(t('seen'))}:</b> ${esc(r.seen)}</div>` : ''}
+    ${body}
+    <div class="mrow"><span>${esc(t('confidence'))}</span><span class="pill ${r.confidence === 'high' ? 'good' : r.confidence === 'medium' ? 'warn' : 'bad'}">${esc(conf)}</span></div>
+    ${list(r.reasons) ? `<div class="small"><b>${esc(t('why'))}</b><ul style="margin:4px 0 0;padding-left:18px">${list(r.reasons)}</ul></div>` : ''}
+    ${list(r.tips) ? `<div class="small"><b>${esc(t('better'))}</b><ul style="margin:4px 0 0;padding-left:18px">${list(r.tips)}</ul></div>` : ''}
+    <p class="muted small" style="margin:0">${esc(t('guessDisclaimer'))}</p>
+    ${hasKg ? `<button class="btn block" type="button" data-g="share-ai">${esc(t('shareResult'))}</button>` : ''}
+    ${hasKg && G.mode !== 'crop' ? `<button class="btn block" type="button" data-sl="from-guess" data-v="ai">${esc(t('slSaveGuess'))}</button>` : ''}
+  </div>`;
+}
+function refreshGuessOut(){
+  const a = document.getElementById('tapeOut'); if (a) a.innerHTML = tapeOutHTML();
+  const b = document.getElementById('aiOut'); if (b) b.innerHTML = aiOutHTML();
+}
+
+const TAPE_SVG = `<svg viewBox="0 0 300 150" role="img" aria-label="" style="width:100%;max-width:320px;height:auto;align-self:center">
+  <g fill="var(--accent-soft)" stroke="var(--muted)" stroke-width="2">
+    <ellipse cx="150" cy="70" rx="95" ry="34"/>
+    <path d="M238 52 q22 -18 40 -6 q6 10 -4 20 q-14 6 -30 4z"/>
+    <path d="M80 98 v40 M100 100 v38 M195 100 v38 M215 98 v40" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <path d="M56 62 q-14 6 -12 22" fill="none"/>
+  </g>
+  <ellipse cx="200" cy="70" rx="11" ry="38" fill="none" stroke="var(--bad)" stroke-width="3" stroke-dasharray="6 4"/>
+  <text x="200" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="var(--bad)">1</text>
+  <path d="M232 40 L66 40" stroke="var(--good)" stroke-width="3" marker-end="url(#ah)" marker-start="url(#ah)"/>
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="var(--good)"/></marker></defs>
+  <text x="150" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="var(--good)">2</text>
+</svg>`;
+
+function viewGuess(){
+  const st = S.settings, a = G.animal, crop = G.mode === 'crop';
+  const animals = ['goat','sheep','pig','buffalo'];
+  const segBtn = (m, label) => `<button type="button" data-g="mode" data-v="${m}" aria-pressed="${G.mode === m}">${esc(label)}</button>`;
+  const lu = G.lenUnit === 'in' ? t('unitIn') : t('unitCm');
+  const photos = G.urls.map((u, i) => `<span style="position:relative;display:inline-block"><img src="${u}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)"><button class="btn sm" type="button" data-g="rm-photo" data-i="${i}" aria-label="${esc(t('removePhoto'))}" style="position:absolute;top:-8px;right:-8px;min-height:28px;padding:0 8px;border-radius:99px">×</button></span>`).join('');
+  const aiOK = aiReady && sampleFn && sampleImages;
+  const photoCard = `<section class="card sec">
+      <div class="mrow"><h3>${esc(t('photoTitle'))}</h3><span class="pill warn">${esc(t('photoBadge'))}</span></div>
+      <p class="muted small" style="margin:0">${esc(crop ? t('photoHowCrop') : t('photoHow'))}</p>
+      ${aiOK ? `
+        <label class="btn primary block" for="gFile" style="cursor:pointer">${esc(t('takePhoto'))}</label>
+        <input id="gFile" type="file" accept="image/*" capture="environment" multiple hidden>
+        ${photos ? `<div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px">${photos}</div>` : ''}
+        <div class="field"><label for="gNote">${esc(t('note'))}</label><input id="gNote" data-gi="note" value="${esc(G.note)}" placeholder="${esc(t('notePh'))}" autocomplete="off"></div>
+        ${crop ? `<div class="field"><label for="gCropPrice">${esc(t('cropValue'))}</label><input id="gCropPrice" data-gi="cropPrice" inputmode="decimal" value="${esc(st.cropPrice || '')}"></div>` : ''}
+        <button class="btn good big block" type="button" data-g="ask" ${G.busy ? 'disabled' : ''}>${esc(t('askAI'))}</button>
+        <span class="muted small">${esc(t('aiUsage'))}</span>`
+      : `<p class="banner" style="margin:0">${esc(aiReady ? t('aiNeedsClaude') : t('loading'))}</p>`}
+      <div id="aiOut">${aiOutHTML()}</div>
+    </section>`;
+  if (crop){
+    return `<div class="s-head"><h2>${esc(t('guessTitle'))}</h2><p>${esc(t('guessSub'))}</p></div>
+      <div class="seg">${segBtn('animal', t('gAnimal'))}${segBtn('crop', t('gCrop'))}</div>${photoCard}`;
+  }
+  return `<div class="s-head"><h2>${esc(t('guessTitle'))}</h2><p>${esc(t('guessSub'))}</p></div>
+    <div class="seg">${segBtn('animal', t('gAnimal'))}${segBtn('crop', t('gCrop'))}</div>
+    <div class="chips">${animals.map(x => `<button type="button" class="chip" data-g="animal" data-v="${x}" aria-pressed="${a === x}">${esc(animalWord(x))}</button>`).join('')}</div>
+    ${a === 'goat' ? `<div class="chips">${GOAT_TYPES.map(g => `<button type="button" class="chip" data-g="gtype" data-v="${g}" aria-pressed="${G.goatType === g}">${esc(GT[L()][g])}</button>`).join('')}</div>` : ''}
+    <div class="seg" role="group" aria-label="${esc(t('gMethod'))}">
+      <button type="button" data-g="method" data-v="photo" aria-pressed="${G.method === 'photo'}">${esc(t('mPhoto'))}</button>
+      <button type="button" data-g="method" data-v="tape" aria-pressed="${G.method === 'tape'}">${esc(t('mTape'))}</button>
+      <button type="button" data-g="method" data-v="ai" aria-pressed="${G.method === 'ai'}">${esc(t('mAI'))}</button></div>
+    ${G.method === 'photo' ? pmCardHTML() : G.method === 'ai' ? photoCard : `<section class="card sec">
+      <div class="mrow"><h3>${esc(t('tapeTitle'))}</h3><span class="pill good">${esc(t('tapeBadge'))}</span></div>
+      ${TAPE_SVG}
+      <p class="muted small" style="margin:0">${esc(a === 'pig' ? t('tapeHowP') : t('tapeHowA'))}</p>
+      <div class="seg" style="max-width:220px"><button type="button" data-g="unit" data-v="cm" aria-pressed="${G.lenUnit === 'cm'}">${esc(t('unitCm'))}</button><button type="button" data-g="unit" data-v="in" aria-pressed="${G.lenUnit === 'in'}">${esc(t('unitIn'))}</button></div>
+      <div class="row2">
+        <div class="field"><label for="gGirth">1 · ${esc(t('girth'))} (${esc(lu)})</label><input id="gGirth" data-gi="girth" inputmode="decimal" value="${esc(G.girth)}" placeholder="–"></div>
+        <div class="field"><label for="gLen">2 · ${esc(t('length'))} (${esc(lu)})</label><input id="gLen" data-gi="length" inputmode="decimal" value="${esc(G.length)}" placeholder="–"></div>
+      </div>
+      <div id="tapeOut">${tapeOutHTML()}</div>
+    </section>`}
+    <details class="card sec" ${G.priceOpen ? 'open' : ''} id="gPrice"><summary style="cursor:pointer;font-weight:700">${esc(t('priceSettings'))}</summary>
+      <div class="sec" style="margin-top:10px">
+      <div class="row2">
+        <div class="field"><label for="gYield">${esc(t('meatYield'))}</label><input id="gYield" data-gi="yield" inputmode="decimal" value="${esc(st.yield[a])}"></div>
+        <div class="field"><label for="gLive">${esc(t('livePrice'))}</label><input id="gLive" data-gi="livePrice" inputmode="decimal" value="${esc((st.livePrice || {})[a] || '')}"></div>
+      </div>
+      ${a === 'buffalo' ? `<div class="field"><label for="gBhag">${esc(t('bhagCount'))}</label><input id="gBhag" data-gi="bhag" inputmode="decimal" value="${esc(G.bhag)}"></div>` : ''}
+      ${a === 'pig' ? `<div class="field"><label for="gDk">${esc(t('dharniKg'))}</label><input id="gDk" data-gi="dharniKg" inputmode="decimal" value="${esc(st.dharniKg)}"></div>` : ''}
+      <span class="muted small">${esc(t('yieldHelp'))}</span></div>
+    </details>`;
+}
+
+function bindGuess(){
+  pmBind();
+  const ps = document.getElementById('gPrice'); if (ps) ps.ontoggle = () => { G.priceOpen = ps.open; };
+  const fi = document.getElementById('gFile');
+  if (fi) fi.onchange = () => {
+    const max = 3;
+    [...fi.files].forEach(f => { if (G.photos.length < max){ G.photos.push(f); G.urls.push(URL.createObjectURL(f)); } });
+    G.err = ''; render();
+  };
+}
+$main.addEventListener('input', ev => {
+  const el = ev.target.closest('[data-gi]'); if (!el || S.view !== 'guess') return;
+  const k = el.dataset.gi, v = el.value;
+  if (k === 'girth' || k === 'length' || k === 'bhag' || k === 'note') G[k] = v;
+  else if (k === 'yield'){ S.settings.yield[G.animal] = num(v); }
+  else if (k === 'livePrice'){ S.settings.livePrice = Object.assign({}, S.settings.livePrice, {[G.animal]:num(v)}); }
+  else if (k === 'dharniKg'){ S.settings.dharniKg = num(v); }
+  else if (k === 'cropPrice'){ S.settings.cropPrice = num(v); }
+  else if (k === 'pmRef'){ G.pm.stickCm = v; }
+  else if (k === 'coinMm'){ S.settings.coinMm = num(v); }
+  else if (k === 'personCm'){ S.settings.personCm = num(v); }
+  refreshGuessOut();
+  const po = document.getElementById('pmOut'); if (po) po.innerHTML = pmOutHTML();
+});
+$main.addEventListener('change', ev => {
+  const el = ev.target.closest('[data-gi]'); if (!el || S.view !== 'guess') return;
+  if (['yield','livePrice','dharniKg','cropPrice','coinMm','personCm'].includes(el.dataset.gi)) saveSettings();
+});
+$main.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-g]'); if (!b || S.view !== 'guess') return;
+  const g = b.dataset.g, v = b.dataset.v;
+  if (g === 'mode'){ G.mode = v; G.err = ''; render(); }
+  else if (g === 'animal'){ if (G.animal !== v){ G.girth = ''; G.length = ''; G.bhag = ''; } G.animal = v; G.err = ''; render(); }
+  else if (g === 'gtype'){ G.goatType = v; render(); }
+  else if (g === 'method'){ G.method = v; G.err = ''; render(); }
+  else if (g === 'unit'){
+    if (G.lenUnit !== v){ const f = v === 'cm' ? 2.54 : 1 / 2.54; ['girth','length'].forEach(k => { if (num(G[k]) > 0) G[k] = String(Math.round(num(G[k]) * f * 10) / 10); }); }
+    G.lenUnit = v; render();
+  }
+  else if (g === 'rm-photo'){ const i = +b.dataset.i; try { URL.revokeObjectURL(G.urls[i]); } catch (e) {} G.photos.splice(i, 1); G.urls.splice(i, 1); render(); }
+  else if (g === 'stop'){ if (G.ctl) G.ctl.abort(); }
+  else if (g === 'ask') askAI();
+  else if (g === 'share-tape'){
+    const kg = tapeKg(); if (!kg) return;
+    openSender(t('shareResult'), [{name:t('shareResult'), phone:'', share:true, msg:msgLangs().map(l => shareText(estimateLines(kg * 0.9, kg, kg * 1.1, l), tl(l,'tapeTitle'), l)).join('\n\n')}]);
+  }
+  else if (g === 'share-ai'){
+    const r = G.ai; if (!r) return;
+    const mid = num(r.likely_kg), lo = num(r.low_kg) || mid, hi = num(r.high_kg) || mid;
+    const msg = msgLangs().map(l => {
+      const lines = G.mode === 'crop'
+        ? [{k:'item', v:r.item || ''}, {k:'weightW', v:`${tl(l,'about')} ${kgStr(mid, l)}`, sub:`${kgStr(lo, l)} – ${kgStr(hi, l)}`}]
+        : estimateLines(lo, mid, hi, l);
+      return shareText(lines, tl(l,'photoTitle'), l);
+    }).join('\n\n');
+    openSender(t('shareResult'), [{name:t('shareResult'), phone:'', share:true, msg}]);
+  }
+});
+
+async function askAI(){
+  if (!sampleFn) return;
+  if (!G.photos.length){ G.err = t('noPhoto'); refreshGuessOut(); return; }
+  const lang = L() === 'ne' ? 'Nepali, written in Devanagari script' : 'simple English';
+  const crop = G.mode === 'crop';
+  let tape = '';
+  const kg = tapeKg(); if (!crop && kg) tape = `The farmer also measured with a tape: heart girth ${G.girth} ${G.lenUnit}, body length ${G.length} ${G.lenUnit}; a standard tape formula gives about ${Math.round(kg)} kg. Use this as strong evidence.`;
+  const what = crop
+    ? `Estimate the TOTAL weight in kg of the vegetables, fruit or crop shown (a pile, basket, sack or bunch) for a farmer in rural Nepal who wants to sell it.`
+    : `Estimate the LIVE body weight in kg of the ${G.animal === 'goat' ? 'goat (' + G.goatType + ')' : G.animal} shown, for a farmer in rural Nepal who wants to sell it. Consider local Nepali breeds and the animal's age, frame and body condition.`;
+  const prompt = `${what}
+Look carefully at the ${G.photos.length} photo(s). Judge scale from any objects of known size (people, hands, doors, bottles, buckets, baskets, bricks). Be honest: give a range, and set confidence to "low" when scale is unclear.
+Farmer's note: ${G.note ? JSON.stringify(G.note) : 'none'}
+${tape}
+If the photos do not clearly show ${crop ? 'a crop or produce' : 'this kind of animal'}, set likely_kg to null and say what you see.
+Write every text field in ${lang}. Keep each text short (under 15 words).
+Reply with only one JSON object of this shape:
+{"seen": string, ${crop ? '"item": string, "count": number|null, ' : ''}"low_kg": number|null, "likely_kg": number|null, "high_kg": number|null, "confidence": "low"|"medium"|"high", "reasons": [string, string], "tips": [string]}`;
+  G.busy = true; G.err = ''; G.ctl = new AbortController(); refreshGuessOut();
+  const askBtn = $main.querySelector('[data-g="ask"]'); if (askBtn) askBtn.disabled = true;
+  try {
+    const r = await sampleFn.json(prompt, {images:G.photos, signal:G.ctl.signal, modelTier:'default'});
+    G.ai = (r && typeof r === 'object') ? r : null; G.aiFor = G.mode + ':' + G.animal;
+    if (!G.ai) G.err = t('errOther');
+  } catch (e) {
+    const c = e && e.code;
+    if (c === 'cancelled') G.err = '';
+    else if (c === 'not_granted' || c === 'sampling_disabled' || c === 'images_unavailable' || c === 'not_declared') G.err = t('errDeclined');
+    else if (c === 'rate_limited') G.err = t('errBusy');
+    else if (c === 'image_rejected') G.err = t('errPhoto');
+    else G.err = t('errOther');
+  } finally {
+    G.busy = false; G.ctl = null;
+    if (S.view === 'guess') render();
+  }
+}
+
+/* ---------- Photo measure: reference (coin / person / stick) + tapped points, no AI ---------- */
+G.pm = {ref:'coin', stickCm:'100', zoom:1, side:null, front:null};
+const WIDTH_RATIO = {goat:0.62, sheep:0.65, pig:0.8, buffalo:0.65};
+const PM_COL = {ref:'#FFC400', len:'#00C853', dep:'#FF3D3D'};
+function pmEmpty(src){ return {src, refPts:[], coin:null, coinManual:false, pts:[]}; }
+
+function animalSteps(which){
+  const pig = G.animal === 'pig';
+  if (which === 'front') return [{label:t('pmLeft'), col:PM_COL.dep}, {label:t('pmRight'), col:PM_COL.dep}];
+  return [
+    {label:pig ? t('pmEars') : t('pmShoulder'), col:PM_COL.len}, {label:pig ? t('pmTail') : t('pmPin'), col:PM_COL.len},
+    {label:t('pmBack'), col:PM_COL.dep}, {label:t('pmBelly'), col:PM_COL.dep}];
+}
+function refSteps(ph){
+  if (G.pm.ref === 'coin') return ph.coinManual ? [t('pmCoinLeft'), t('pmCoinRight')] : [t('pmCoinTap')];
+  if (G.pm.ref === 'person') return [t('pmHead'), t('pmFeet')];
+  return [t('pmRefStart'), t('pmRefEnd')];
+}
+function refDone(ph){ return (G.pm.ref === 'coin' && !ph.coinManual) ? !!ph.coin : ph.refPts.length >= 2; }
+function refPx(ph){
+  if (G.pm.ref === 'coin' && !ph.coinManual) return ph.coin ? ph.coin.d : 0;
+  return ph.refPts.length >= 2 ? pmDist(ph.refPts[0], ph.refPts[1]) : 0;
+}
+function refCm(){
+  const st = S.settings;
+  if (G.pm.ref === 'coin') return num(st.coinMm) / 10;
+  if (G.pm.ref === 'person') return num(st.personCm);
+  return num(G.pm.stickCm);
+}
+function pmDist(p, q){ return Math.hypot(p.x - q.x, p.y - q.y); }
+function ellipsePerimeter(a, b){ return Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b))); }
+
+/* Find the coin around a tap. Edge candidates along rays, a rough radius vote, then repeated
+   ellipse fits (a tilted coin looks oval; its longest width is still the true size). */
+function solveLinear(M, v){
+  const n = v.length, A = M.map((r, i) => r.concat([v[i]]));
+  for (let c = 0; c < n; c++){
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    if (Math.abs(A[p][c]) < 1e-12) return null;
+    [A[c], A[p]] = [A[p], A[c]];
+    for (let r = 0; r < n; r++){ if (r === c) continue; const f = A[r][c] / A[c][c]; for (let k = c; k <= n; k++) A[r][k] -= f * A[c][k]; }
+  }
+  return A.map((r, i) => r[n] / r[i]);
+}
+function fitEllipse(P, ox, oy, sc){
+  if (P.length < 10) return null;
+  const M = [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]], v = [0,0,0,0,0];
+  P.forEach(p => {
+    const x = (p.x - ox) / sc, y = (p.y - oy) / sc, row = [x * x, x * y, y * y, x, y];
+    for (let i = 0; i < 5; i++){ v[i] += row[i]; for (let j = 0; j < 5; j++) M[i][j] += row[i] * row[j]; }
+  });
+  const s = solveLinear(M, v); if (!s) return null;
+  const [A, B, C, D, E] = s;
+  const det = 4 * A * C - B * B; if (!(det > 0)) return null;
+  const x0 = (B * E - 2 * C * D) / det, y0 = (B * D - 2 * A * E) / det;
+  const F = A * x0 * x0 + B * x0 * y0 + C * y0 * y0 + D * x0 + E * y0 - 1;
+  const tr = A + C, dd = Math.sqrt(Math.max(0, (A - C) * (A - C) + B * B));
+  const l1 = (tr + dd) / 2, l2 = (tr - dd) / 2;
+  if (!(l1 > 0 && l2 > 0 && F < 0)) return null;
+  const a = Math.sqrt(-F / l2) * sc, b = Math.sqrt(-F / l1) * sc; // a = semi-major
+  return {cx:ox + x0 * sc, cy:oy + y0 * sc, a, b, A, B, C, F, sc,
+    rAt(th){ const c = Math.cos(th), s2 = Math.sin(th); return Math.sqrt(-F / (A * c * c + B * c * s2 + C * s2 * s2)) * sc; }};
+}
+function findCoinFrom(src, tx, ty, R0){
+  const W = src.width, H = src.height;
+  const Rmax = Math.max(12, Math.round(Math.min(W, H) * 0.05)), Rmin = 3;
+  const x0 = Math.max(0, Math.floor(tx - Rmax * 1.6)), y0 = Math.max(0, Math.floor(ty - Rmax * 1.6));
+  const x1 = Math.min(W, Math.ceil(tx + Rmax * 1.6)), y1 = Math.min(H, Math.ceil(ty + Rmax * 1.6));
+  let id; try { id = src.getContext('2d').getImageData(x0, y0, x1 - x0, y1 - y0); } catch (e) { return null; }
+  const w = id.width, h = id.height, d = id.data;
+  const g1 = (i, j) => { const k = (j * w + i) * 4; return 0.299 * d[k] + 0.587 * d[k + 1] + 0.114 * d[k + 2]; };
+  const gray = (x, y) => {
+    x -= x0; y -= y0; const xi = Math.floor(x), yi = Math.floor(y);
+    if (xi < 0 || yi < 0 || xi >= w - 1 || yi >= h - 1) return null;
+    const fx = x - xi, fy = y - yi;
+    return g1(xi, yi) * (1 - fx) * (1 - fy) + g1(xi + 1, yi) * fx * (1 - fy) + g1(xi, yi + 1) * (1 - fx) * fy + g1(xi + 1, yi + 1) * fx * fy;
+  };
+  const N = 90;
+  const rays = (cx, cy) => {
+    const out = [];
+    for (let k = 0; k < N; k++){
+      const th = k / N * Math.PI * 2, c = Math.cos(th), s = Math.sin(th), prof = [];
+      for (let r = Rmin; r <= Rmax; r += 0.5){ const v = gray(cx + c * r, cy + s * r); if (v === null) break; prof.push(v); }
+      const gr = [];
+      for (let i = 2; i < prof.length - 2; i++) gr.push({r:Rmin + i * 0.5, g:Math.abs((prof[i + 1] + prof[i + 2]) - (prof[i - 1] + prof[i - 2]))});
+      const lm = gr.filter((q, i) => i > 0 && i < gr.length - 1 && q.g >= gr[i - 1].g && q.g >= gr[i + 1].g && q.g > 10)
+        .sort((p, q) => q.g - p.g).slice(0, 6);
+      out.push({th, c, s, lm});
+    }
+    return out;
+  };
+  // 1) rough radius vote from the tap, loose tolerance
+  let rs = rays(tx, ty), best = null;
+  for (let R = Rmin + 2; R <= Rmax; R *= 1.03){
+    let n = 0, sc = 0;
+    rs.forEach(ray => { const hit = ray.lm.find(m => Math.abs(m.r - R) <= R * 0.35 + 1); if (hit){ n++; sc += hit.g; } });
+    if (!best || n > best.n || (n === best.n && sc > best.sc)) best = {R, n, sc};
+  }
+  if (R0) best = {R:R0, n:N};
+  if (!best || best.n < N * 0.5) return null;
+  let model = {cx:tx, cy:ty, rAt:() => best.R, a:best.R, b:best.R};
+  // 2) refine: pick the edge nearest the model on each ray, fit an ellipse, repeat
+  const tols = [0.35, 0.22, 0.14, 0.1, 0.1];
+  let pts = [], gsum = 0;
+  for (let it = 0; it < tols.length; it++){
+    rs = rays(model.cx, model.cy); pts = []; gsum = 0;
+    rs.forEach(ray => {
+      const want = model.rAt(ray.th);
+      const cands = ray.lm.filter(m => Math.abs(m.r - want) <= want * tols[it] + 1);
+      if (!cands.length) return;
+      const hit = cands.sort((p, q) => (q.g - p.g) || (Math.abs(p.r - want) - Math.abs(q.r - want)))[0];
+      pts.push({x:model.cx + ray.c * hit.r, y:model.cy + ray.s * hit.r}); gsum += hit.g;
+    });
+    if (pts.length < N * 0.5) return null;
+    const e = fitEllipse(pts, model.cx, model.cy, Math.max(4, model.a));
+    if (!e || !(e.a > 2) || e.b / e.a < 0.3 || e.a > Rmax * 1.3) return null;
+    const moved = Math.hypot(e.cx - model.cx, e.cy - model.cy);
+    model = e;
+    if (it >= 2 && moved < 0.3) break;
+  }
+  const res = Math.sqrt(pts.reduce((s, p) => { const th = Math.atan2(p.y - model.cy, p.x - model.cx); return s + Math.pow(Math.hypot(p.x - model.cx, p.y - model.cy) - model.rAt(th), 2); }, 0) / pts.length);
+  if (res / model.a > 0.08) return null;
+  const score = (pts.length / N) * (gsum / pts.length) / (1 + 10 * res / model.a);
+  return {cx:model.cx, cy:model.cy, r:(model.a + model.b) / 2, a:model.a, b:model.b, d:model.a * 2, score};
+}
+/* Where is the coin's centre? Every strong edge votes along its gradient direction (circle Hough).
+   Rim, inner ring and pattern of a coin all point to the same centre, hair and grass do not. */
+function coinCentre(src, tx, ty){
+  const W = src.width, H = src.height, Rmax = Math.max(12, Math.round(Math.min(W, H) * 0.05));
+  const half = Math.round(Rmax * 2.2);
+  const x0 = Math.max(1, Math.round(tx - half)), y0 = Math.max(1, Math.round(ty - half));
+  const x1 = Math.min(W - 1, Math.round(tx + half)), y1 = Math.min(H - 1, Math.round(ty + half));
+  const w = x1 - x0, h = y1 - y0; if (w < 8 || h < 8) return null;
+  let id; try { id = src.getContext('2d').getImageData(x0 - 1, y0 - 1, w + 2, h + 2); } catch (e) { return null; }
+  const W2 = w + 2, d = id.data, g = new Float32Array(W2 * (h + 2));
+  for (let i = 0, k = 0; i < g.length; i++, k += 4) g[i] = 0.299 * d[k] + 0.587 * d[k + 1] + 0.114 * d[k + 2];
+  const gx = new Float32Array(w * h), gy = new Float32Array(w * h), mag = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const i = (y + 1) * W2 + (x + 1);
+    const sx = (g[i - W2 + 1] + 2 * g[i + 1] + g[i + W2 + 1]) - (g[i - W2 - 1] + 2 * g[i - 1] + g[i + W2 - 1]);
+    const sy = (g[i + W2 - 1] + 2 * g[i + W2] + g[i + W2 + 1]) - (g[i - W2 - 1] + 2 * g[i - W2] + g[i - W2 + 1]);
+    const j = y * w + x; gx[j] = sx; gy[j] = sy; mag[j] = Math.hypot(sx, sy);
+  }
+  const sorted = Array.from(mag).sort((a, b) => b - a), thr = Math.max(40, sorted[Math.floor(sorted.length * 0.12)] || 0);
+  // accumulator only around the tap: the finger is on the coin
+  const win = Math.round(Rmax * 0.9), aw = win * 2 + 1, acc = new Float32Array(aw * aw);
+  const ax0 = Math.round(tx) - win, ay0 = Math.round(ty) - win;
+  const step = Math.max(1, Math.round(Math.max(w, h) / 260));
+  for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step){
+    const j = y * w + x, m = mag[j]; if (m < thr) continue;
+    const ux = gx[j] / m, uy = gy[j] / m, px = x + x0, py = y + y0;
+    for (let r = 3; r <= Rmax; r++){
+      for (const sgn of [1, -1]){
+        const cx = Math.round(px + sgn * ux * r) - ax0, cy = Math.round(py + sgn * uy * r) - ay0;
+        if (cx >= 0 && cy >= 0 && cx < aw && cy < aw) acc[cy * aw + cx] += 1;
+      }
+    }
+  }
+  let best = -1, bx = 0, by = 0;
+  for (let y = 1; y < aw - 1; y++) for (let x = 1; x < aw - 1; x++){
+    let v = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) v += acc[(y + dy) * aw + x + dx];
+    if (v > best){ best = v; bx = x; by = y; }
+  }
+  return best > 0 ? {x:bx + ax0, y:by + ay0} : null;
+}
+function findCoin(src, tx, ty){
+  const c0 = coinCentre(src, tx, ty);
+  const tries = [];
+  if (c0) tries.push(findCoinFrom(src, c0.x, c0.y));
+  tries.push(findCoinFrom(src, tx, ty));
+  // a tilted coin can lock onto its short side first: try again from the same centre with a bigger start
+  tries.slice().forEach(c => { if (c) [1.2, 1.4].forEach(f => tries.push(findCoinFrom(src, c.cx, c.cy, c.a * f))); });
+  const ok = tries.filter(c => c && Math.hypot(c.cx - tx, c.cy - ty) <= Math.max(4, c.a * 0.9));
+  if (!ok.length) return null;
+  // prefer the one that agrees with the voted centre, then the stronger edge
+  ok.sort((p, q) => q.score - p.score);
+  return ok[0];
+}
+
+function pmCompute(){
+  const a = G.animal, sd = G.pm.side, fr = G.pm.front, rc = refCm();
+  if (!(rc > 0) || !sd || !refDone(sd) || sd.pts.length < 4) return null;
+  const rs = refPx(sd); if (!(rs > 2)) return null;
+  const sc = rc / rs;
+  const len = pmDist(sd.pts[0], sd.pts[1]) * sc, depth = pmDist(sd.pts[2], sd.pts[3]) * sc;
+  let width = null, typical = false;
+  if (fr && refDone(fr) && fr.pts.length >= 2){ const rf = refPx(fr); if (rf > 2) width = pmDist(fr.pts[0], fr.pts[1]) * rc / rf; }
+  if (!(width > 0)){ width = depth * WIDTH_RATIO[a]; typical = true; }
+  const raw = ellipsePerimeter(depth / 2, width / 2);
+  const cal = num((S.settings.photoCal || {})[a]) || 1;
+  const girth = raw * cal;
+  const kg = girth * girth * len / TAPE_K[a];
+  let spread = typical ? 0.2 : 0.12;
+  if (G.pm.ref === 'coin') spread += 0.03;
+  if (cal !== 1) spread -= 0.03;
+  return {len, depth, width, typical, raw, girth, kg, spread, cal};
+}
+function cmStr(x){ return dig(Math.round(x)) + ' ' + (L() === 'ne' ? 'सेमी' : 'cm'); }
+function pmLoad(file, which){
+  const done = (src) => { G.pm[which] = pmEmpty(src); render(); };
+  const fail = () => { toast(t('pmBadPhoto')); };
+  const toCanvas = (img, w, h) => {
+    const k = Math.min(1, 3000 / Math.max(w, h));
+    const cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+    cv.getContext('2d', {willReadFrequently:true}).drawImage(img, 0, 0, cv.width, cv.height); return cv;
+  };
+  const viaImg = () => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { done(toCanvas(im, im.naturalWidth, im.naturalHeight)); URL.revokeObjectURL(u); }; im.onerror = fail; im.src = u; };
+  if (window.createImageBitmap) createImageBitmap(file, {imageOrientation:'from-image'}).then(bm => done(toCanvas(bm, bm.width, bm.height))).catch(viaImg);
+  else viaImg();
+}
+function pmDraw(which){
+  const ph = G.pm[which], cv = document.getElementById('pm-' + which);
+  if (!cv || !ph) return;
+  if (cv.width !== ph.src.width) cv.width = ph.src.width;
+  if (cv.height !== ph.src.height) cv.height = ph.src.height;
+  const c = cv.getContext('2d'); c.drawImage(ph.src, 0, 0);
+  const r = Math.max(7, cv.width / 90), steps = animalSteps(which);
+  const seg = (p, q, col) => {
+    c.lineCap = 'round';
+    c.strokeStyle = 'rgba(0,0,0,.65)'; c.lineWidth = r * 0.7; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+    c.strokeStyle = col; c.lineWidth = r * 0.35; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+  };
+  const dot = (p, col, label) => {
+    c.beginPath(); c.arc(p.x, p.y, r, 0, Math.PI * 2); c.fillStyle = col; c.fill();
+    c.lineWidth = r * 0.25; c.strokeStyle = '#fff'; c.stroke();
+    if (label){ c.fillStyle = '#000'; c.font = `700 ${Math.round(r * 1.2)}px system-ui,sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, p.x, p.y + 1); }
+  };
+  // reference
+  if (G.pm.ref === 'coin' && !ph.coinManual && ph.coin){
+    const k = ph.coin;
+    c.lineWidth = Math.max(2, k.r * 0.12); c.strokeStyle = 'rgba(0,0,0,.7)'; c.beginPath(); c.arc(k.cx, k.cy, k.r + c.lineWidth, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = PM_COL.ref; c.beginPath(); c.arc(k.cx, k.cy, k.r, 0, Math.PI * 2); c.stroke();
+    const big = Math.max(k.r * 2.2, r * 3); c.lineWidth = Math.max(2, r * 0.25);
+    c.beginPath(); c.moveTo(k.cx - big, k.cy); c.lineTo(k.cx - k.r * 1.2, k.cy); c.moveTo(k.cx + k.r * 1.2, k.cy); c.lineTo(k.cx + big, k.cy); c.stroke();
+  } else {
+    if (ph.refPts.length >= 2) seg(ph.refPts[0], ph.refPts[1], PM_COL.ref);
+    ph.refPts.forEach(p => dot(p, PM_COL.ref, ''));
+  }
+  const P = ph.pts;
+  if (which === 'side'){ if (P[1]) seg(P[0], P[1], PM_COL.len); if (P[3]) seg(P[2], P[3], PM_COL.dep); }
+  else if (P[1]) seg(P[0], P[1], PM_COL.dep);
+  P.forEach((p, i) => dot(p, steps[i].col, String(i + 1)));
+}
+function pmHint(which){
+  const ph = G.pm[which]; if (!ph) return '';
+  if (!refDone(ph)){
+    const rs = refSteps(ph), n = ph.refPts.length;
+    return t('pmTapRef', rs[Math.min(n, rs.length - 1)]);
+  }
+  const steps = animalSteps(which), n = ph.pts.length;
+  return n < steps.length ? dig(t('pmTapNext', n + 1, steps.length, steps[n].label)) : t('pmDone');
+}
+function pmOutHTML(){
+  const r = pmCompute(); if (!r) return '';
+  if (r.kg < 1 || r.kg > 1500 || r.len < 10) return `<p class="err" style="margin:0">${esc(t('checkMeasure'))}</p>`;
+  const tg = num(G.girth) * (G.lenUnit === 'in' ? 2.54 : 1);
+  const cal = r.cal !== 1
+    ? `<div class="mrow"><span class="small">${esc(t('pmCalOn', dig(r.cal.toFixed(2))))}</span><button class="btn sm" type="button" data-g="pm-cal-reset">${esc(t('pmCalReset'))}</button></div>` : '';
+  const calOffer = tg > 0 && r.raw > 0
+    ? `<div class="banner" style="display:flex;flex-direction:column;gap:6px"><b>${esc(t('pmCalTitle'))}</b><span>${esc(t('pmCalCompare', cmStr(tg), cmStr(r.raw)))}</span><button class="btn sm" type="button" data-g="pm-cal">${esc(t('pmCalSave'))}</button></div>`
+    : `<p class="muted small" style="margin:0">${esc(t('pmCalHow'))}</p>`;
+  return `<div class="card money">
+    <div class="small" style="font-weight:700">${esc(t('pmMeasured'))}</div>
+    <div class="mrow"><span>${esc(t('pmLength'))}</span><b class="num">${esc(cmStr(r.len))}</b></div>
+    <div class="mrow"><span>${esc(t('pmDepth'))}</span><b class="num">${esc(cmStr(r.depth))}</b></div>
+    <div class="mrow"><span>${esc(t('pmWidth'))}${r.typical ? `<br><small class="muted">${esc(t('pmTypical'))}</small>` : ''}</span><b class="num">${esc(cmStr(r.width))}</b></div>
+    <div class="mrow"><span>${esc(t('pmGirth'))}</span><b class="num">${esc(cmStr(r.girth))}</b></div>
+    ${linesHTML(estimateLines(r.kg * (1 - r.spread), r.kg, r.kg * (1 + r.spread)))}
+    ${cal}
+    <p class="muted small" style="margin:0">${esc(t('guessDisclaimer'))}</p>
+    <button class="btn block" type="button" data-g="share-pm">${esc(t('shareResult'))}</button>
+    <button class="btn block" type="button" data-sl="from-guess" data-v="pm">${esc(t('slSaveGuess'))}</button>
+    ${calOffer}
+  </div>`;
+}
+function pmRefresh(){
+  ['side','front'].forEach(w => { pmDraw(w); const h = document.getElementById('pmHint-' + w); if (h) h.textContent = pmHint(w); });
+  const o = document.getElementById('pmOut'); if (o) o.innerHTML = pmOutHTML();
+}
+function pmCardHTML(){
+  const st = S.settings, ref = G.pm.ref;
+  const one = (which) => {
+    const ph = G.pm[which], side = which === 'side';
+    return `<div class="field"><span class="lbl">${esc(side ? t('pmSide') : t('pmFront'))}</span>
+      ${side ? '' : `<span class="help">${esc(t(ref === 'person' ? 'pmFrontHowP' : 'pmFrontHow'))}</span>`}
+      <label class="btn ${side && !ph ? 'primary' : ''} block" for="pmFile-${which}" style="cursor:pointer">${esc(ph ? t('pmRetake') : (side ? t('pmTake') : t('pmTakeFront')))}</label>
+      <input id="pmFile-${which}" type="file" accept="image/*" capture="environment" hidden>
+      ${ph ? `<p class="calc" style="margin:0" id="pmHint-${which}" role="status">${esc(pmHint(which))}</p>
+        <div style="overflow:auto;border-radius:12px;border:1px solid var(--line);max-height:70vh"><canvas id="pm-${which}" data-pm="${which}" style="display:block;width:${G.pm.zoom * 100}%;height:auto;cursor:crosshair;touch-action:manipulation"></canvas></div>
+        <div class="btn-row"><button class="btn sm" type="button" data-g="pm-undo" data-v="${which}">${esc(t('pmUndo'))}</button><button class="btn sm" type="button" data-g="pm-clear" data-v="${which}">${esc(t('pmClear'))}</button><button class="btn sm" type="button" data-g="pm-zoom">${esc(t('pmZoomX', dig(G.pm.zoom)))}</button></div>` : ''}
+    </div>`;
+  };
+  const refBtn = (k, label) => `<button type="button" class="chip" data-g="pm-ref" data-v="${k}" aria-pressed="${ref === k}">${esc(label)}</button>`;
+  const refField = ref === 'coin'
+    ? `<div class="field"><label for="pmCoin">${esc(t('pmCoinMm'))}</label><input id="pmCoin" data-gi="coinMm" inputmode="decimal" value="${esc(st.coinMm)}"><span class="help">${esc(t('pmCoinHelp'))}</span></div>`
+    : ref === 'person'
+    ? `<div class="field"><label for="pmPerson">${esc(t('pmPersonCm'))}</label><input id="pmPerson" data-gi="personCm" inputmode="decimal" value="${esc(st.personCm || '')}" placeholder="165"><span class="help">${esc(t('pmPersonHelp'))}</span></div>`
+    : `<div class="field"><label for="pmRef">${esc(t('pmRef'))}</label><input id="pmRef" data-gi="pmRef" inputmode="decimal" value="${esc(G.pm.stickCm)}"><span class="help">${esc(t('pmRefHelp'))}</span></div>`;
+  return `<section class="card sec">
+    <div class="mrow"><h3>${esc(t('pmTitle'))}</h3><span class="pill good">${esc(t('pmBadge'))}</span></div>
+    <span class="lbl muted small" style="font-weight:700">${esc(t('pmRefChoose'))}</span>
+    <div class="chips">${refBtn('coin', t('pmRefCoin'))}${refBtn('person', t('pmRefPerson'))}${refBtn('stick', t('pmRefStick'))}</div>
+    <p class="muted small" style="margin:0">${esc(t(ref === 'coin' ? 'pmHowCoin' : ref === 'person' ? 'pmHowPerson' : 'pmHow'))}</p>
+    ${refField}
+    ${one('side')}
+    ${G.pm.side ? one('front') : ''}
+    <div id="pmOut">${pmOutHTML()}</div>
+  </section>`;
+}
+function pmBind(){
+  ['side','front'].forEach(w => {
+    const f = document.getElementById('pmFile-' + w); if (f) f.onchange = () => { if (f.files[0]) pmLoad(f.files[0], w); };
+    pmDraw(w);
+  });
+}
+$main.addEventListener('click', ev => {
+  const cv = ev.target.closest('canvas[data-pm]'); if (!cv || S.view !== 'guess') return;
+  const which = cv.dataset.pm, ph = G.pm[which]; if (!ph) return;
+  const rc = cv.getBoundingClientRect();
+  const x = (ev.clientX - rc.left) * cv.width / rc.width, y = (ev.clientY - rc.top) * cv.height / rc.height;
+  if (!refDone(ph)){
+    if (G.pm.ref === 'coin' && !ph.coinManual){
+      if (ph.busy) return;
+      ph.busy = true; const h = document.getElementById('pmHint-' + which); if (h) h.textContent = t('pmCoinLooking');
+      setTimeout(() => {
+        const c = findCoin(ph.src, x, y); ph.busy = false;
+        if (c){ ph.coin = c; toast(t('pmCoinFound')); }
+        else { ph.coinManual = true; ph.refPts = []; toast(t('pmCoinFail')); }
+        pmRefresh();
+      }, 40);
+      return;
+    } else ph.refPts.push({x, y});
+  } else if (ph.pts.length < animalSteps(which).length) ph.pts.push({x, y});
+  pmRefresh();
+});
+$main.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-g]'); if (!b || S.view !== 'guess') return;
+  const g = b.dataset.g, w = b.dataset.v;
+  if (g === 'pm-undo'){
+    const ph = G.pm[w]; if (!ph) return;
+    if (ph.pts.length) ph.pts.pop();
+    else if (ph.coin) ph.coin = null;
+    else if (ph.refPts.length) ph.refPts.pop();
+    else if (ph.coinManual) ph.coinManual = false;
+    pmRefresh();
+  }
+  else if (g === 'pm-clear'){ const ph = G.pm[w]; if (ph) G.pm[w] = pmEmpty(ph.src); pmRefresh(); }
+  else if (g === 'pm-zoom'){ G.pm.zoom = G.pm.zoom === 1 ? 2.5 : G.pm.zoom === 2.5 ? 5 : 1; render(); }
+  else if (g === 'pm-ref'){
+    if (G.pm.ref !== w){ G.pm.ref = w; ['side','front'].forEach(k => { const ph = G.pm[k]; if (ph){ ph.refPts = []; ph.coin = null; ph.coinManual = false; } }); }
+    render();
+  }
+  else if (g === 'pm-cal'){
+    const r = pmCompute(); const tg = num(G.girth) * (G.lenUnit === 'in' ? 2.54 : 1);
+    if (r && tg > 0 && r.raw > 0){ S.settings.photoCal = Object.assign({}, S.settings.photoCal, {[G.animal]:Math.round(tg / r.raw * 1000) / 1000}); saveSettings(); toast(t('pmCalSaved')); pmRefresh(); }
+  }
+  else if (g === 'pm-cal-reset'){ const c = Object.assign({}, S.settings.photoCal); delete c[G.animal]; S.settings.photoCal = c; saveSettings(); pmRefresh(); }
+  else if (g === 'share-pm'){
+    const r = pmCompute(); if (!r) return;
+    openSender(t('shareResult'), [{name:t('shareResult'), phone:'', share:true,
+      msg:msgLangs().map(l => shareText(estimateLines(r.kg * (1 - r.spread), r.kg, r.kg * (1 + r.spread), l), tl(l,'pmTitle'), l)).join('\n\n')}]);
+  }
+});
+
+/* ---------- My sales: each signed-in person's own private record of animals sold ---------- */
+const SL = {list:{}, uid:null, me:null, mode:'loading', year:'all', unsub:null};
+const SALES_LS = 'masu-hisab-sales-v1';
+const SALE_ANIMALS = ['goat','sheep','pig','buffalo','chicken','other'];
+function salePath(id){ return 'data/users/' + SL.uid + '/profile/sales/' + id; }
+function idbOpen(){
+  return new Promise((res, rej) => {
+    try { const rq = indexedDB.open('masu-hisab', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('kv'); rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); }
+    catch (e) { rej(e); }
+  });
+}
+async function idbGet(k){ const d = await idbOpen(); return new Promise((res, rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+async function idbSet(k, v){ const d = await idbOpen(); return new Promise((res, rej) => { const tx = d.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error); }); }
+async function salesLocalLoad(){
+  let fromLs = {};
+  try { fromLs = JSON.parse(localStorage.getItem(SALES_LS) || '{}') || {}; } catch (e) {}
+  try { const v = await idbGet('sales'); SL.list = Object.assign({}, fromLs, v || {}); SL.idb = true; }
+  catch (e) { SL.list = fromLs; SL.idb = false; }
+}
+function salesLocalSave(){
+  if (SL.idb){
+    idbSet('sales', clone(SL.list)).then(() => { try { localStorage.removeItem(SALES_LS); } catch (e) {} }).catch(() => { SL.idb = false; salesLocalSave(); });
+    return true;
+  }
+  try { localStorage.setItem(SALES_LS, JSON.stringify(SL.list)); return true; }
+  catch (e) { toast(t('slStorageFull')); return false; }
+}
+async function initSales(){
+  let user = null;
+  try { user = (window.claude && typeof window.claude.use === 'function') ? await window.claude.use('user') : null; } catch (e) { user = null; }
+  if (user){ try { SL.uid = await user.id(); SL.me = await user.me(); } catch (e) { SL.uid = null; } }
+  if (db && SL.uid){
+    SL.mode = 'cloud';
+    const col = db.collection('data/users/' + SL.uid + '/profile/sales');
+    SL.unsub = col.onSnapshot(snap => {
+      const o = {}; snap.docs.forEach(d => { o[d.id] = clone(d.data()); }); SL.list = o;
+      if (S.view === 'sales') render();
+    }, () => { if (S.view === 'sales') render(); });
+  } else {
+    await salesLocalLoad(); SL.mode = 'local';
+    if (window.MASU_PREVIEW && !Object.keys(SL.list).length) salesExample();
+  }
+  if (S.view === 'sales') render();
+}
+function saveSale(id){
+  const data = SL.list[id] || null;
+  if (SL.mode === 'cloud') saveDoc(salePath(id), data);
+  else salesLocalSave();
+}
+function salesExample(){
+  const d = (n) => { const x = new Date(); x.setDate(x.getDate() - n); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  [{kind:'cut', animal:'goat', goatType:'khasi', date:d(0), meatQty:10, liveKg:21, money:14000, buyer:'', note:'', how:'scale'},
+   {kind:'alive', animal:'goat', goatType:'boka', date:d(40), liveKg:32, money:27000, buyer:'Ram Gurung', note:'', how:'photo'},
+   {kind:'alive', animal:'pig', goatType:'', date:d(95), liveKg:88, money:52000, buyer:'Krishna Ale', note:'', how:'tape'},
+   {kind:'cut', animal:'buffalo', goatType:'', date:d(400), meatQty:40, liveKg:320, money:100000, buyer:'', note:'', how:'guess'}]
+    .forEach((r, i) => { const id = 'ex' + i; SL.list[id] = Object.assign({photos:[], createdAt:Date.now() - i, example:true}, r); });
+  salesLocalSave();
+}
+
+/* photos: shrunk to JPEG and kept inside the person's own record */
+async function toJpeg(srcObj, maxSide, q){
+  maxSide = maxSide || 720; q = q || 0.72;
+  let img, w, h;
+  if (srcObj instanceof HTMLCanvasElement){ img = srcObj; w = srcObj.width; h = srcObj.height; }
+  else {
+    try { img = await createImageBitmap(srcObj, {imageOrientation:'from-image'}); w = img.width; h = img.height; }
+    catch (e) {
+      img = await new Promise((res, rej) => { const u = URL.createObjectURL(srcObj), im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = u; });
+      w = img.naturalWidth; h = img.naturalHeight;
+    }
+  }
+  const k = Math.min(1, maxSide / Math.max(w, h)), cv = document.createElement('canvas');
+  cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+  cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+  let url = cv.toDataURL('image/jpeg', q);
+  if (url.length > 110000) url = cv.toDataURL('image/jpeg', 0.55);
+  if (url.length > 110000){ const c2 = document.createElement('canvas'); c2.width = Math.round(cv.width * 0.7); c2.height = Math.round(cv.height * 0.7); c2.getContext('2d').drawImage(cv, 0, 0, c2.width, c2.height); url = c2.toDataURL('image/jpeg', 0.6); }
+  return url;
+}
+
+function saleAnimalName(r, lang){
+  lang = lang || L();
+  if (r.animal === 'goat') return lang === 'ne' ? GT.ne[r.goatType] || tl(lang, 'goat') : (GT.en[r.goatType] ? GT.en[r.goatType] + ' goat' : 'Goat');
+  if (r.animal === 'other') return r.other || tl(lang, 'slOther');
+  if (r.animal === 'chicken') return tl(lang, 'slChicken');
+  return animalWord(r.animal, lang);
+}
+function saleMeatUnit(r){ return r.animal === 'pig' ? 'dharni' : r.animal === 'buffalo' ? 'bhag' : 'kg'; }
+function saleList(){
+  return Object.entries(SL.list).map(([id, r]) => Object.assign({id}, r))
+    .filter(r => SL.year === 'all' || (toBS(r.date) || {}).y === +SL.year)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+}
+function saleYears(){
+  const ys = new Set(); Object.values(SL.list).forEach(r => { const b = toBS(r.date); if (b) ys.add(b.y); });
+  return [...ys].sort((a, b) => b - a);
+}
+
+function viewSales(){
+  const list = saleList(), years = saleYears();
+  const me = SL.me;
+  const who = SL.mode === 'cloud'
+    ? `<div class="mrow" style="align-items:center"><span style="display:flex;gap:10px;align-items:center;min-width:0">${me && me.avatarUrl ? `<img src="${esc(me.avatarUrl)}" alt="" style="width:40px;height:40px;border-radius:50%;flex:none">` : ''}<span style="min-width:0"><b id="slName" style="display:block;font-size:17px"></b><span class="muted small">${esc(t('slPrivate'))}</span></span></span></div>`
+    : `<p class="banner" style="margin:0">${esc(SL.mode === 'loading' ? t('loading') : t('slLocal'))}</p>`;
+  const total = list.reduce((a, r) => a + num(r.money), 0);
+  const live = list.reduce((a, r) => a + num(r.liveKg), 0);
+  // by animal
+  const by = {};
+  list.forEach(r => {
+    const k = r.animal === 'goat' ? 'goat:' + r.goatType : r.animal === 'other' ? 'other:' + (r.other || '') : r.animal;
+    const g = by[k] || (by[k] = {name:saleAnimalName(r), n:0, money:0, live:0, meat:0, unit:saleMeatUnit(r)});
+    g.n++; g.money += num(r.money); g.live += num(r.liveKg); if (r.kind === 'cut') g.meat += num(r.meatQty);
+  });
+  const byRows = Object.values(by).sort((a, b) => b.money - a.money).map(g => `<div class="mrow"><span><b>${esc(g.name)}</b> ×${esc(dig(g.n))}<br><small class="muted num">${[g.live ? kgStr(g.live) + ' ' + t('slLiveShort') : '', g.meat ? qtyText(g.meat, g.unit) + ' ' + t('slMeatShort') : ''].filter(Boolean).map(esc).join(' · ')}</small></span><b class="num">${esc(money(g.money))}</b></div>`).join('');
+  // by month (one year) or by year (all)
+  let bars = [];
+  if (SL.year === 'all'){
+    const m = {}; Object.values(SL.list).forEach(r => { const b = toBS(r.date); if (b) m[b.y] = (m[b.y] || 0) + num(r.money); });
+    bars = Object.keys(m).sort().map(y => ({label:dig(y), v:m[y]}));
+  } else {
+    const m = new Array(12).fill(0); list.forEach(r => { const b = toBS(r.date); if (b) m[b.m - 1] += num(r.money); });
+    bars = m.map((v, i) => ({label:BS_MONTHS[L()][i], v})).filter(x => x.v > 0);
+  }
+  const maxV = Math.max(1, ...bars.map(b => b.v));
+  const barHTML = bars.map(b => `<div style="display:grid;grid-template-columns:76px 1fr auto;gap:8px;align-items:center;font-size:14px"><span class="muted">${esc(b.label)}</span><span style="height:12px;border-radius:6px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:${Math.max(3, Math.round(b.v / maxV * 100))}%;background:var(--good);border-radius:6px"></i></span><b class="num">${esc(money(b.v))}</b></div>`).join('');
+  const cards = list.map(r => {
+    const ph = (r.photos || [])[0];
+    const w = r.kind === 'cut'
+      ? [num(r.meatQty) ? qtyText(r.meatQty, saleMeatUnit(r)) + ' ' + t('slMeatShort') : '', num(r.liveKg) ? kgStr(r.liveKg) + ' ' + t('slLiveShort') : ''].filter(Boolean).join(' · ')
+      : (num(r.liveKg) ? kgStr(r.liveKg) + ' ' + t('slLiveShort') : '');
+    return `<button class="card p-row" type="button" data-sl="open" data-id="${esc(r.id)}" style="align-items:stretch">
+      <span style="width:64px;height:64px;flex:none;border-radius:10px;overflow:hidden;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);font-weight:700;font-size:12px;text-align:center;overflow-wrap:anywhere;padding:2px">${ph ? `<img src="${ph}" alt="" style="width:100%;height:100%;object-fit:cover">` : esc(badgeText({animal:['goat','pig','buffalo'].includes(r.animal) ? r.animal : 'goat', goatType:r.goatType || 'khasi'}))}</span>
+      <span class="who"><b>${esc(saleAnimalName(r))} ${r.example ? `<span class="pill neutral">${esc(t('example'))}</span>` : ''}</b><span>${esc(fmtDate(r.date))} · ${esc(r.kind === 'cut' ? t('slCut') : t('slAlive'))}${w ? ' · ' + esc(w) : ''}${r.buyer ? ' · ' + esc(r.buyer) : ''}</span></span>
+      <b class="num" style="align-self:center">${esc(money(r.money))}</b>
+    </button>`;
+  }).join('');
+  return `<div class="s-head"><h2>${esc(t('slTitle'))}</h2><p>${esc(t('slSub'))}</p></div>
+    <section class="card sec">${who}</section>
+    ${years.length ? `<div class="chips"><button type="button" class="chip" data-sl="year" data-v="all" aria-pressed="${SL.year === 'all'}">${esc(t('all'))}</button>${years.map(y => `<button type="button" class="chip" data-sl="year" data-v="${y}" aria-pressed="${String(SL.year) === String(y)}">${esc(dig(y))}</button>`).join('')}</div>` : ''}
+    <section class="hero"><span class="lbl">${esc(t('slEarned'))}</span><span class="big num">${esc(money(total))}</span><span class="sub">${esc(dig(t('slCount', list.length)))}${live ? ' · ' + esc(kgStr(live)) + ' ' + esc(t('slLiveShort')) : ''}</span></section>
+    <button class="btn primary big block" type="button" data-sl="add">+ ${esc(t('slAdd'))}</button>
+    ${list.length ? `<section class="card sec"><h3>${esc(t('slByAnimal'))}</h3>${byRows}</section>
+      ${bars.length ? `<section class="card sec"><h3>${esc(SL.year === 'all' ? t('slByYear') : t('slByMonth'))}</h3>${barHTML}</section>` : ''}
+      <div class="list">${cards}</div>`
+    : `<div class="card empty"><h3>${esc(t('slEmpty'))}</h3><p class="muted" style="margin:0">${esc(t('slEmptyHelp'))}</p></div>`}`;
+}
+async function bindSales(){
+  const n = document.getElementById('slName');
+  if (n) n.textContent = (SL.me && SL.me.name) || t('slYou');
+}
+
+function openSaleForm(id, pre){
+  const editing = !!id && SL.list[id];
+  const r = editing ? clone(SL.list[id]) : Object.assign({kind:'alive', animal:'goat', goatType:'khasi', other:'', date:today(), photos:[], liveKg:'', meatQty:'', money:'', buyer:'', note:'', how:''}, pre || {});
+  const body = `
+    <div class="seg" id="sKind"><button type="button" data-k="alive" aria-pressed="${r.kind === 'alive'}">${esc(t('slAlive'))}</button><button type="button" data-k="cut" aria-pressed="${r.kind === 'cut'}">${esc(t('slCut'))}</button></div>
+    <div class="field"><span class="lbl">${esc(t('animal'))}</span><div class="chips" id="sAnimal">${SALE_ANIMALS.map(a => `<button type="button" class="chip" data-a="${a}" aria-pressed="${r.animal === a}">${esc(a === 'chicken' ? t('slChicken') : a === 'other' ? t('slOther') : animalWord(a))}</button>`).join('')}</div></div>
+    <div class="chips" id="sGoat">${GOAT_TYPES.map(g => `<button type="button" class="chip" data-g="${g}" aria-pressed="${r.goatType === g}">${esc(GT[L()][g])}</button>`).join('')}</div>
+    <div class="field" id="sOtherW"><label for="sOther">${esc(t('slOtherName'))}</label><input id="sOther" value="${esc(r.other || '')}" autocomplete="off"></div>
+    <div class="field"><label for="sDate">${esc(t('date'))}</label><input id="sDate" type="date" value="${esc(r.date)}" data-nofocus="1"><span class="help" id="sDateBS">${esc(fmtBS(r.date, L()))}</span></div>
+    <div class="field"><span class="lbl">${esc(t('slPhotos'))}</span>
+      <div id="sPh" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+      <label class="btn block" for="sFile" style="cursor:pointer" id="sFileL">${esc(t('slAddPhoto'))}</label><input id="sFile" type="file" accept="image/*" capture="environment" hidden></div>
+    <div class="row2">
+      <div class="field" id="sMeatW"><label for="sMeat" id="sMeatL"></label><input id="sMeat" inputmode="decimal" value="${esc(r.meatQty)}" placeholder="–"></div>
+      <div class="field"><label for="sLive" id="sLiveL"></label><input id="sLive" inputmode="decimal" value="${esc(r.liveKg)}" placeholder="–"></div>
+    </div>
+    <div class="field"><label for="sHow">${esc(t('slHow'))}</label><select id="sHow">${['', 'scale', 'tape', 'photo', 'guess'].map(h => `<option value="${h}" ${r.how === h ? 'selected' : ''}>${esc(t('slHow_' + (h || 'none')))}</option>`).join('')}</select></div>
+    <div class="field"><label for="sMoney">${esc(t('slMoney'))}</label><input id="sMoney" inputmode="decimal" value="${esc(r.money)}" placeholder="–"><span class="help num" id="sPerKg"></span></div>
+    <div class="field"><label for="sBuyer">${esc(t('slBuyer'))}</label><input id="sBuyer" value="${esc(r.buyer || '')}" autocomplete="off"></div>
+    <div class="field"><label for="sNote">${esc(t('note'))}</label><input id="sNote" value="${esc(r.note || '')}" autocomplete="off"></div>
+    <p class="err" id="sErr" hidden></p>`;
+  openSheet(esc(editing ? t('slEdit') : t('slAdd')), body,
+    (editing ? `<button class="btn danger" type="button" id="sDel">${esc(t('del'))}</button>` : `<button class="btn" type="button" data-close2>${esc(t('cancel'))}</button>`) +
+    `<button class="btn primary" type="button" id="sSave">${esc(t('save'))}</button>`);
+  const $ = x => document.getElementById(x);
+  const c2 = $sheet.querySelector('[data-close2]'); if (c2) c2.onclick = closeSheet;
+  function sync(){
+    $sheet.querySelectorAll('#sKind button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === r.kind));
+    $sheet.querySelectorAll('#sAnimal button').forEach(b => b.setAttribute('aria-pressed', b.dataset.a === r.animal));
+    $sheet.querySelectorAll('#sGoat button').forEach(b => b.setAttribute('aria-pressed', b.dataset.g === r.goatType));
+    $('sGoat').hidden = r.animal !== 'goat'; $('sOtherW').hidden = r.animal !== 'other';
+    $('sMeatW').hidden = r.kind !== 'cut';
+    $('sMeatL').textContent = t('slMeatSold', unitName(saleMeatUnit(r)));
+    $('sLiveL').textContent = r.kind === 'cut' ? t('slLiveOpt') : t('slLiveKg');
+    const m = num($('sMoney').value), lk = num($('sLive').value), mq = num($('sMeat').value);
+    const parts = [];
+    if (m > 0 && lk > 0) parts.push(t('slPerLiveKg', money(m / lk)));
+    if (m > 0 && mq > 0 && r.kind === 'cut') parts.push(t('slPerUnit', money(m / mq), unitName(saleMeatUnit(r))));
+    $('sPerKg').textContent = parts.join(' · ');
+  }
+  function drawPhotos(){
+    $('sPh').innerHTML = r.photos.map((u, i) => `<span style="position:relative;display:inline-block"><img src="${u}" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line)"><button class="btn sm" type="button" data-rm="${i}" aria-label="${esc(t('removePhoto'))}" style="position:absolute;top:-8px;right:-8px;min-height:28px;padding:0 8px;border-radius:99px">×</button></span>`).join('');
+    $('sPh').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { r.photos.splice(+b.dataset.rm, 1); drawPhotos(); });
+    $('sFileL').hidden = r.photos.length >= 2;
+  }
+  $sheet.querySelectorAll('#sKind button').forEach(b => b.onclick = () => { r.kind = b.dataset.k; sync(); });
+  $sheet.querySelectorAll('#sAnimal button').forEach(b => b.onclick = () => { r.animal = b.dataset.a; sync(); });
+  $sheet.querySelectorAll('#sGoat button').forEach(b => b.onclick = () => { r.goatType = b.dataset.g; sync(); });
+  ['sMoney', 'sLive', 'sMeat'].forEach(k => $(k).oninput = sync);
+  $('sDate').oninput = () => { $('sDateBS').textContent = $('sDate').value ? fmtBS($('sDate').value, L()) : ''; };
+  $('sFile').onchange = async () => {
+    const f = $('sFile').files[0]; if (!f) return;
+    try { r.photos.push(await toJpeg(f)); drawPhotos(); } catch (e) { toast(t('pmBadPhoto')); }
+    $('sFile').value = '';
+  };
+  sync(); drawPhotos();
+  $('sSave').onclick = () => {
+    const money2 = Math.round(num($('sMoney').value));
+    if (!(money2 > 0) && !(num($('sLive').value) > 0) && !(num($('sMeat').value) > 0)){ $('sErr').hidden = false; $('sErr').textContent = t('slNeedSomething'); return; }
+    const out = Object.assign({}, editing ? SL.list[id] : {createdAt:Date.now()}, {
+      kind:r.kind, animal:r.animal, goatType:r.animal === 'goat' ? r.goatType : '', other:r.animal === 'other' ? $('sOther').value.trim() : '',
+      date:$('sDate').value || today(), photos:r.photos.slice(0, 2),
+      liveKg:num($('sLive').value) > 0 ? num($('sLive').value) : '', meatQty:r.kind === 'cut' && num($('sMeat').value) > 0 ? num($('sMeat').value) : '',
+      money:money2 > 0 ? money2 : '', how:$('sHow').value, buyer:$('sBuyer').value.trim(), note:$('sNote').value.trim()
+    });
+    if (pre && pre.fromSession) out.fromSession = pre.fromSession;
+    if (JSON.stringify(out).length > 240000){ out.photos = out.photos.slice(0, 1); }
+    delete out.example;
+    const nid = id || uid(); SL.list[nid] = out; saveSale(nid);
+    closeSheet(); if (S.view !== 'sales'){ S.view = 'sales'; } render(); toast(t('saved'));
+  };
+  const del = $('sDel'); if (del) del.onclick = () => {
+    confirmBox(t('slConfirmDel'), t('del'), () => { delete SL.list[id]; saveSale(id); render(); });
+  };
+}
+function openSaleView(id){
+  const r = SL.list[id]; if (!r) return;
+  const ph = (r.photos || []).map(u => `<img src="${u}" alt="" style="width:100%;border-radius:12px;border:1px solid var(--line)">`).join('');
+  const rows = [
+    [t('date'), fmtDate(r.date)], [t('slSoldHow'), r.kind === 'cut' ? t('slCut') : t('slAlive')],
+    r.kind === 'cut' && num(r.meatQty) ? [t('slMeatSold', unitName(saleMeatUnit(r))), qtyText(r.meatQty, saleMeatUnit(r))] : null,
+    num(r.liveKg) ? [t('slLiveKg'), kgStr(r.liveKg)] : null,
+    r.how ? [t('slHow'), t('slHow_' + r.how)] : null,
+    [t('slMoney'), money(num(r.money))],
+    num(r.money) && num(r.liveKg) ? [t('slPerLiveKgL'), money(num(r.money) / num(r.liveKg))] : null,
+    r.buyer ? [t('slBuyer'), r.buyer] : null, r.note ? [t('note'), r.note] : null
+  ].filter(Boolean).map(([k, v]) => `<div class="mrow"><span>${esc(k)}</span><b class="num" style="white-space:normal;text-align:right">${esc(v)}</b></div>`).join('');
+  openSheet(esc(saleAnimalName(r)), `${ph}<div class="card money">${rows}</div>`,
+    `<button class="btn" type="button" id="svEdit">${esc(t('edit'))}</button><button class="btn primary" type="button" data-close2>${esc(t('close'))}</button>`);
+  $sheet.querySelector('[data-close2]').onclick = closeSheet;
+  document.getElementById('svEdit').onclick = () => openSaleForm(id);
+}
+$main.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-sl]'); if (!b) return;
+  const a = b.dataset.sl;
+  if (a === 'add') openSaleForm(null);
+  else if (a === 'open') openSaleView(b.dataset.id);
+  else if (a === 'year'){ SL.year = b.dataset.v; render(); }
+  else if (a === 'from-cutting'){
+    const s = S.sessions[S.sid]; if (!s) return;
+    const hit = Object.entries(SL.list).find(([, r]) => r.fromSession === S.sid);
+    if (hit){ openSaleForm(hit[0]); return; }
+    const r = totals(s);
+    openSaleForm(null, {kind:'cut', animal:s.animal, goatType:s.goatType || 'khasi', date:s.date, meatQty:r.given || num(s.totalQty) || '',
+      money:r.amount || '', how:isWeighed(s) ? 'scale' : '', note:t('slFromCutting'), fromSession:S.sid});
+  }
+  else if (a === 'from-guess'){
+    const src = b.dataset.v; let kg = 0, photo = null, how = '';
+    if (src === 'tape'){ kg = tapeKg() || 0; how = 'tape'; }
+    else if (src === 'pm'){ const r = pmCompute(); kg = r ? r.kg : 0; how = 'photo'; photo = G.pm.side && G.pm.side.src; }
+    else if (src === 'ai'){ kg = num(G.ai && G.ai.likely_kg); how = 'guess'; photo = G.photos[0]; }
+    const pre = {kind:'alive', animal:['goat','sheep','pig','buffalo'].includes(G.animal) ? G.animal : 'other', goatType:G.goatType, liveKg:kg ? Math.round(kg * 10) / 10 : '', how, photos:[]};
+    const lp = num((S.settings.livePrice || {})[G.animal]); if (lp && kg) pre.money = Math.round(kg * lp);
+    if (photo){ toJpeg(photo).then(u => { pre.photos = [u]; openSaleForm(null, pre); }).catch(() => openSaleForm(null, pre)); }
+    else openSaleForm(null, pre);
+  }
+});
+
+/* ---------- Session form ---------- */
+function openSessionForm(id){
+  const editing = !!id;
+  const s = editing ? clone(S.sessions[id]) : {animal:'goat', goatType:'khasi', date:today(), ownerName:'', ownerPhone:'', totalQty:'', rate:defaultRate('goat','khasi'), expenses:'', note:''};
+  let rateTouched = editing;
+  const body = `
+    <div class="field"><span class="lbl">${esc(t('animal'))}</span><div class="seg" id="fAnimal">
+      ${['goat','pig','buffalo'].map(a => `<button type="button" data-a="${a}" aria-pressed="${s.animal === a}">${esc(t(a))}</button>`).join('')}</div></div>
+    <div class="field" id="fGoatWrap"><span class="lbl">${esc(t('goatType'))}</span><div class="chips" id="fGoat">
+      ${GOAT_TYPES.map(g => `<button type="button" class="chip" data-g="${g}" aria-pressed="${s.goatType === g}">${esc(GT[L()][g])}</button>`).join('')}</div></div>
+    <div class="row2">
+      <div class="field"><label for="fDate">${esc(t('date'))}</label><input id="fDate" type="date" value="${esc(s.date)}" data-nofocus="1"><span class="help" id="fDateBS">${esc(fmtBS(s.date, L()))}</span></div>
+      <div class="field"><label for="fQty" id="fQtyL"></label><input id="fQty" inputmode="decimal" value="${esc(s.totalQty)}" placeholder="–"></div>
+    </div>
+    <span class="help muted small" style="margin-top:-8px">${esc(t('totalQtyHelp'))}</span>
+    <div class="field"><label for="fRate" id="fRateL"></label><input id="fRate" inputmode="decimal" value="${esc(s.rate)}"><span class="help" id="fRateHelp">${editing ? '' : esc(t('rateFromSettings'))}</span></div>
+    <div class="field" id="fBhagWrap"><label for="fTotalPrice">${esc(t('bhagHelper'))}</label><input id="fTotalPrice" inputmode="decimal" placeholder="${esc(t('totalPrice'))}"><span class="help" id="fPerBhag"></span></div>
+    <div class="row2">
+      <div class="field"><label for="fOwner">${esc(t('ownerName'))}</label><input id="fOwner" value="${esc(s.ownerName)}" autocomplete="off"></div>
+      <div class="field"><label for="fOwnerPh">${esc(t('ownerPhone'))}</label><input id="fOwnerPh" type="tel" inputmode="tel" value="${esc(s.ownerPhone)}"></div>
+    </div>
+    <div class="field"><label for="fOwnerPay">${esc(t('ownerPay'))}</label><input id="fOwnerPay" value="${esc(s.ownerPay || '')}" placeholder="${esc(t('ownerPayPh'))}" autocomplete="off"></div>
+    <div class="field"><label for="fExp">${esc(t('expensesOpt'))}</label><input id="fExp" inputmode="decimal" value="${esc(s.expenses)}"></div>
+    <p class="err" id="fErr" hidden></p>`;
+  openSheet(esc(editing ? t('editCutting') : t('newCutting')), body,
+    `<button class="btn" type="button" data-close2>${esc(t('cancel'))}</button><button class="btn primary" type="button" id="fSave">${esc(t('save'))}</button>`);
+  $sheet.querySelector('[data-close2]').onclick = closeSheet;
+  const $ = id2 => document.getElementById(id2);
+  function sync(){
+    const unit = unitName(UNIT_OF[s.animal]);
+    $('fQtyL').textContent = t('totalQty', unit);
+    $('fRateL').textContent = t('ratePer', unit);
+    $('fGoatWrap').hidden = s.animal !== 'goat';
+    $('fBhagWrap').hidden = s.animal !== 'buffalo';
+    $sheet.querySelectorAll('#fAnimal button').forEach(b => b.setAttribute('aria-pressed', b.dataset.a === s.animal));
+    $sheet.querySelectorAll('#fGoat button').forEach(b => b.setAttribute('aria-pressed', b.dataset.g === s.goatType));
+    if (!rateTouched){ $('fRate').value = defaultRate(s.animal, s.goatType) || ''; }
+  }
+  $sheet.querySelectorAll('#fAnimal button').forEach(b => b.onclick = () => { s.animal = b.dataset.a; sync(); });
+  $('fDate').oninput = () => { $('fDateBS').textContent = $('fDate').value ? fmtBS($('fDate').value, L()) : ''; };
+  $sheet.querySelectorAll('#fGoat button').forEach(b => b.onclick = () => { s.goatType = b.dataset.g; sync(); });
+  $('fRate').oninput = () => { rateTouched = true; $('fRateHelp').textContent = ''; };
+  function bhagCalc(){
+    const tp = num($('fTotalPrice').value), n = num($('fQty').value);
+    if (tp > 0 && n > 0){ const per = Math.round(tp / n); $('fRate').value = per; rateTouched = true; $('fRateHelp').textContent = ''; $('fPerBhag').textContent = t('perBhagIs', money(per)); }
+    else $('fPerBhag').textContent = '';
+  }
+  $('fTotalPrice').oninput = bhagCalc; $('fQty').addEventListener('input', () => { if (s.animal === 'buffalo' && $('fTotalPrice').value) bhagCalc(); });
+  sync();
+  $('fSave').onclick = () => {
+    const rate = num($('fRate').value);
+    if (!(rate > 0)){ $('fErr').hidden = false; $('fErr').textContent = t('ratePer', unitName(UNIT_OF[s.animal])); return; }
+    const out = Object.assign(editing ? S.sessions[id] : {entries:[], createdAt:Date.now()}, {
+      animal:s.animal, goatType:s.animal === 'goat' ? s.goatType : '', date:$('fDate').value || today(),
+      ownerName:$('fOwner').value.trim(), ownerPhone:phoneIn($('fOwnerPh').value), ownerPay:$('fOwnerPay').value.trim(),
+      totalQty:$('fQty').value.trim() === '' ? '' : num($('fQty').value), rate, expenses:$('fExp').value.trim() === '' ? '' : num($('fExp').value)
+    });
+    const newId = id || uid(); S.sessions[newId] = out; saveSession(newId);
+    closeSheet(); S.view = 'session'; S.sid = newId; S.filter = 'all'; render(); toast(t('saved'));
+  };
+}
+
+/* ---------- Entry form ---------- */
+function openEntryForm(sid, eid){
+  const s = S.sessions[sid]; const unit = UNIT_OF[s.animal];
+  const editing = !!eid; const src = editing ? (s.entries || []).find(e => e.id === eid) : null;
+  const e = src ? clone(src) : {name:'', phone:'', qty:'', paid:0, method:'cash', note:''};
+  const custom = e.amt !== undefined && e.amt !== null && e.amt !== '';
+  let st0 = editing ? entryStatus(s, e) : 'unpaid'; if (st0 === 'nomeat') st0 = 'unpaid';
+  const weighed = isWeighed(s); const w0 = wantOf(e);
+  const chips = {kg:[0.5,1,1.5,2,2.5,3], dharni:[0.25,0.5,0.75,1,1.5,2], bhag:[0.5,1,1.5,2]}[unit];
+  const names = Object.values(S.contacts).map(c => `<option value="${esc(c.name)}"></option>`).join('');
+  const body = `
+    <div class="field"><label for="eName">${esc(t('name'))}</label><input id="eName" list="eNames" value="${esc(e.name)}" autocomplete="off"><datalist id="eNames">${names}</datalist></div>
+    <div class="field"><label for="ePhone">${esc(t('phone'))}</label><input id="ePhone" type="tel" inputmode="tel" value="${esc(e.phone)}" placeholder="98XXXXXXXX"></div>
+    <div class="field"><label for="eQty">${esc(weighed ? t('getsLabel', unitName(unit)) : t('wantsLabel', unitName(unit)))}</label><input id="eQty" inputmode="decimal" value="${esc(e.qty)}" placeholder="–"><span class="help">${weighed && w0 > 0 ? esc(t('ordered') + ': ' + qtyText(w0, unit)) : esc(t('meatOptional'))}</span>
+      <div class="chips" id="eChips">${chips.map(c => `<button type="button" class="chip" data-q="${c}">${esc(dig(qtyNum(c, unit)))}</button>`).join('')}</div></div>
+    <div class="calc"><span id="eCalcL"></span><span id="eCalc"></span></div>
+    <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="eCustom" ${custom ? 'checked' : ''}> ${esc(t('customAmount'))}</label>
+    <div class="field" id="eAmtWrap" ${custom ? '' : 'hidden'}><label for="eAmt">${esc(t('amount'))} (Rs.)</label><input id="eAmt" inputmode="decimal" value="${custom ? esc(e.amt) : ''}"></div>
+    <p class="muted small" id="eNoPay" style="margin:0">${esc(t('payAfterMeat'))}</p>
+    <div id="ePayBox" class="sec">
+      <span class="lbl muted small" style="font-weight:700">${esc(t('payments'))}</span>
+      <div id="ePayList" class="sec" style="gap:6px"></div>
+      <div class="card sec" style="background:var(--bg);gap:10px">
+        <div class="row2">
+          <div class="field"><label for="ePayAmt">${esc(t('payAmount'))}</label><input id="ePayAmt" inputmode="decimal" autocomplete="off"></div>
+          <div class="field"><label for="ePayMeth">${esc(t('method'))}</label><select id="ePayMeth">${['cash','esewa','khalti','bank'].map(m => `<option value="${m}">${esc(t(m))}</option>`).join('')}</select></div>
+        </div>
+        <div class="field"><label for="ePayDate">${esc(t('date'))}</label><input id="ePayDate" type="date" value="${today()}" data-nofocus="1"><span class="help" id="ePayDateBS"></span></div>
+        <div class="btn-row"><button class="btn" type="button" id="ePayAdd">${esc(t('addPayment'))}</button><button class="btn good" type="button" id="ePayFull">✓ ${esc(t('paidFull'))}</button></div>
+      </div>
+    </div>
+    <div class="field"><label for="eNote">${esc(t('note'))}</label><input id="eNote" value="${esc(e.note || '')}"></div>
+    <p class="err" id="eErr" hidden></p>`;
+  openSheet(esc(editing ? e.name : t('addPerson')), body,
+    (editing ? `<button class="btn danger" type="button" id="eDel">${esc(t('del'))}</button>` : `<button class="btn" type="button" data-close2>${esc(t('cancel'))}</button>`) +
+    (editing && weighed && entryDue(s, src) > 0 ? `<button class="btn" type="button" id="eRemind">${esc(t('remind'))}</button>` : '') +
+    `<button class="btn primary" type="button" id="eSave">${esc(t('save'))}</button>`);
+  const $ = id2 => document.getElementById(id2);
+  const c2 = $sheet.querySelector('[data-close2]'); if (c2) c2.onclick = closeSheet;
+  const rm = $('eRemind'); if (rm) rm.onclick = () => openSender(t('remindTitle'), [{name:src.name, phone:src.phone, msg:msgEntry(s, src)}]);
+  let pays = clone(paymentsOf(e));
+  function amount(){ return $('eCustom').checked && $('eAmt').value.trim() !== '' ? Math.round(num($('eAmt').value)) : Math.round(num($('eQty').value) * num(s.rate)); }
+  function calc(){
+    $('eCalcL').textContent = $('eCustom').checked ? t('amount') : `${qtyText(num($('eQty').value), unit)} × ${money(s.rate)}`;
+    $('eCalc').textContent = money(amount());
+    $sheet.querySelectorAll('#eChips .chip').forEach(b => b.setAttribute('aria-pressed', num(b.dataset.q) === num($('eQty').value) && $('eQty').value !== ''));
+    const meat = amount() > 0 && weighed; $('ePayBox').hidden = !meat; $('eNoPay').hidden = meat;
+    drawPays();
+  }
+  function paidSum(){ return pays.reduce((a, x) => a + num(x.amt), 0); }
+  function drawPays(){
+    const due = Math.max(0, amount() - paidSum());
+    $('ePayList').innerHTML = (pays.length ? pays.map((x, i) => `<div class="mrow"><span class="small">${esc(x.date ? fmtDate(x.date) : t('earlier'))} · ${esc(t(x.method || 'cash'))}</span><span style="display:flex;gap:8px;align-items:center"><b class="num">${esc(money(x.amt))}</b><button class="btn sm" type="button" data-rmpay="${i}" aria-label="${esc(t('del'))}">×</button></span></div>`).join('')
+      : `<p class="muted small" style="margin:0">${esc(t('noPayments'))}</p>`)
+      + `<div class="mrow total"><span>${esc(t('paid'))}</span><b class="num" style="color:var(--good)">${esc(money(paidSum()))}</b></div>`
+      + `<div class="mrow"><span>${esc(t('due'))}</span><b class="num" style="color:${due > 0 ? 'var(--bad)' : 'var(--good)'}">${esc(money(due))}</b></div>`;
+    $('ePayAmt').placeholder = due > 0 ? String(due) : '0';
+    $('ePayFull').disabled = !(due > 0);
+    $('ePayList').querySelectorAll('[data-rmpay]').forEach(b => b.onclick = () => { pays.splice(+b.dataset.rmpay, 1); commitPays(); });
+  }
+  function commitPays(){
+    // payments are saved at once so nothing is lost if the sheet is closed
+    if (src){ setPayments(src, pays); saveSession(sid); render(); toast(t('paymentSaved')); }
+    drawPays();
+  }
+  $('ePayDate').oninput = () => { $('ePayDateBS').textContent = $('ePayDate').value ? fmtBS($('ePayDate').value, L()) : ''; };
+  $('ePayDateBS').textContent = fmtBS(today(), L());
+  $('ePayAdd').onclick = () => {
+    const v = Math.round(num($('ePayAmt').value)); if (!(v > 0)){ $('ePayAmt').focus(); toast(t('enterAmount')); return; }
+    pays.push({amt:v, method:$('ePayMeth').value, date:$('ePayDate').value || today()}); $('ePayAmt').value = ''; commitPays();
+  };
+  $('ePayFull').onclick = () => {
+    const due = Math.max(0, amount() - paidSum()); if (!(due > 0)) return;
+    pays.push({amt:due, method:$('ePayMeth').value, date:$('ePayDate').value || today()}); commitPays();
+  };
+  $('eQty').oninput = calc; $('eAmt').oninput = calc;
+  $('eCustom').onchange = () => { $('eAmtWrap').hidden = !$('eCustom').checked; if ($('eCustom').checked && !$('eAmt').value) $('eAmt').value = Math.round(num($('eQty').value) * num(s.rate)) || ''; calc(); };
+  $sheet.querySelectorAll('#eChips .chip').forEach(b => b.onclick = () => { $('eQty').value = b.dataset.q; calc(); });
+  $('eName').addEventListener('input', () => {
+    const hit = findContactByName($('eName').value);
+    if (hit && !$('ePhone').value && hit[1].phone) $('ePhone').value = hit[1].phone;
+  });
+  calc();
+  $('eSave').onclick = () => {
+    const name = $('eName').value.trim(), qty = num($('eQty').value);
+    const err = $('eErr');
+    if (!name){ err.hidden = false; err.textContent = t('nameReq'); return; }
+    const phone = phoneIn($('ePhone').value);
+    const out = {id:eid || uid(), cid:ensureContact(name, phone), name, phone, qty:qty > 0 ? qty : ''};
+    out.want = weighed ? (w0 > 0 ? w0 : out.qty) : out.qty;
+    if ($('eCustom').checked && $('eAmt').value.trim() !== '') out.amt = Math.round(num($('eAmt').value));
+    setPayments(out, (amount() > 0 && weighed) ? pays : []);
+    const note = $('eNote').value.trim(); if (note) out.note = note;
+    s.entries = s.entries || [];
+    const idx = s.entries.findIndex(x => x.id === out.id);
+    if (idx >= 0) s.entries[idx] = Object.assign({}, s.entries[idx], out); else s.entries.push(out);
+    if (!out.note && idx >= 0) delete s.entries[idx].note;
+    if (out.amt === undefined && idx >= 0) delete s.entries[idx].amt;
+    saveSession(sid); closeSheet(); render(); toast(t('saved'));
+  };
+  const del = $('eDel'); if (del) del.onclick = () => {
+    s.entries = (s.entries || []).filter(x => x.id !== eid); saveSession(sid); closeSheet(); render();
+  };
+}
+
+/* ---------- Add many names at once ---------- */
+function openBulkAdd(sid){
+  const s = S.sessions[sid];
+  const inList = new Set((s.entries || []).map(e => e.cid));
+  const saved = Object.entries(S.contacts).filter(([id]) => !inList.has(id))
+    .sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+  const last = sessionList().find(x => x.id !== sid && (x.entries || []).length);
+  const lastIds = new Set(last ? last.entries.map(e => e.cid) : []);
+  const lastHas = saved.some(([id]) => lastIds.has(id));
+  const opts = Object.values(S.contacts).map(c => `<option value="${esc(c.name)}"></option>`).join('');
+  const body = `
+    <p class="muted small" style="margin:0">${esc(t('namesHelp'))}</p>
+    <div class="field"><span class="lbl">${esc(t('newNames'))}</span>
+      <div id="bRows" class="sec" style="gap:8px"></div><datalist id="bNames">${opts}</datalist>
+      <button class="btn sm" type="button" id="bAddRow" style="align-self:flex-start">${esc(t('addRow'))}</button></div>
+    ${saved.length ? `<div class="field"><span class="lbl">${esc(t('savedPeople'))}</span>
+      <div class="chips">${lastHas ? `<button class="chip" type="button" id="bLast">${esc(t('fromLast'))}</button>` : ''}<button class="chip" type="button" id="bClear">${esc(t('clearPick'))}</button></div>
+      <div class="pick" id="bPick">${saved.map(([id, c]) => `<label><input type="checkbox" value="${esc(id)}"><span class="pn">${esc(c.name)}</span><span class="pp">${esc(c.phone || '')}</span></label>`).join('')}</div></div>`
+      : (Object.keys(S.contacts).length ? `<p class="muted small" style="margin:0">${esc(t('allSaved'))}</p>` : '')}
+    <p class="err" id="bErr" hidden></p>`;
+  openSheet(esc(t('addNames')), body,
+    `<button class="btn" type="button" data-close2>${esc(t('cancel'))}</button><button class="btn primary" type="button" id="bSave"></button>`);
+  const $ = id2 => document.getElementById(id2);
+  $sheet.querySelector('[data-close2]').onclick = closeSheet;
+  const rowsEl = $('bRows');
+  function typed(){
+    const seen = new Set(), out = [];
+    rowsEl.querySelectorAll('.bulk-card').forEach(r => {
+      const n = r.querySelector('.bn').value.trim(), p = phoneIn(r.querySelector('.bp').value), w = num(r.querySelector('.bwi').value.replace(',', '.'));
+      if (n && !seen.has(n.toLowerCase())){ seen.add(n.toLowerCase()); out.push({name:n, phone:p, want:w > 0 ? w : ''}); }
+    });
+    return out;
+  }
+  function picked(){ return [...$sheet.querySelectorAll('#bPick input:checked')].map(i => i.value); }
+  function count(){ const n = typed().length + picked().length; $('bSave').textContent = t('addN', n).replace(/\d+/g, d => dig(d)); return n; }
+  function addRow(focus){
+    const r = document.createElement('div'); r.className = 'bulk-card';
+    const u = unitName(UNIT_OF[s.animal]);
+    r.innerHTML = `<input class="bn" list="bNames" autocomplete="off" enterkeyhint="next" placeholder="${esc(t('nameCol'))}" aria-label="${esc(t('name'))}"><input class="bp" type="tel" inputmode="tel" enterkeyhint="next" placeholder="${esc(t('phoneOpt'))}" aria-label="${esc(t('phone'))}"><span class="bw"><input class="bwi" inputmode="decimal" enterkeyhint="next" placeholder="${esc(t('wantsCol'))}" aria-label="${esc(t('wantsLabel', u))}"><span>${esc(u)}</span></span><button class="btn x" type="button" aria-label="${esc(t('del'))}">×</button>`;
+    const bn = r.querySelector('.bn'), bp = r.querySelector('.bp'), bw = r.querySelector('.bwi');
+    bn.addEventListener('input', () => { const hit = findContactByName(bn.value); if (hit && !bp.value && hit[1].phone) bp.value = hit[1].phone; count(); });
+    bn.addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); bp.focus(); } });
+    bp.addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); bw.focus(); } });
+    bw.addEventListener('keydown', ev => {
+      if (ev.key !== 'Enter') return; ev.preventDefault();
+      const next = r.nextElementSibling; if (next) next.querySelector('.bn').focus(); else addRow(true);
+    });
+    r.querySelector('.x').onclick = () => { if (rowsEl.children.length > 1) r.remove(); else { bn.value = ''; bp.value = ''; } count(); };
+    rowsEl.appendChild(r); if (focus) bn.focus();
+  }
+  for (let i = 0; i < 3; i++) addRow(false);
+  $('bAddRow').onclick = () => addRow(true);
+  $sheet.querySelectorAll('#bPick input').forEach(i => i.onchange = count);
+  const bl = $('bLast'); if (bl) bl.onclick = () => { $sheet.querySelectorAll('#bPick input').forEach(i => { if (lastIds.has(i.value)) i.checked = true; }); count(); };
+  const bc = $('bClear'); if (bc) bc.onclick = () => { $sheet.querySelectorAll('#bPick input').forEach(i => { i.checked = false; }); count(); };
+  count();
+  setTimeout(() => { try { rowsEl.querySelector('.bn').focus({preventScroll:true}); } catch (e) {} }, 80);
+  $('bSave').onclick = () => {
+    if (!count()){ $('bErr').hidden = false; $('bErr').textContent = t('noNamesGiven'); return; }
+    s.entries = s.entries || [];
+    const have = new Set(s.entries.map(e => e.cid)); let added = 0, skipped = 0;
+    const push = (cid, name, phone, want) => {
+      if (have.has(cid)){ skipped++; return; }
+      have.add(cid); added++;
+      s.entries.push({id:uid(), cid, name, phone:phone || '', want:want || '', qty:want || '', paid:0});
+    };
+    typed().forEach(x => { const cid = ensureContact(x.name, x.phone); const c = S.contacts[cid]; push(cid, c.name, x.phone || c.phone, x.want); });
+    picked().forEach(cid => { const c = S.contacts[cid]; if (c) push(cid, c.name, c.phone); });
+    if (added) saveSession(sid);
+    closeSheet(); S.filter = 'all'; render();
+    toast(dig(t('added', added)) + (skipped ? ' · ' + dig(t('skipped', skipped)) : ''));
+  };
+}
+
+/* ---------- Contact form ---------- */
+function openPerson(cid){
+  const c = cid ? S.contacts[cid] : {name:'', phone:''};
+  const items = cid ? personItems(cid) : [];
+  const due = items.reduce((a, i) => a + i.due, 0);
+  const list = items.map(i => {
+    const unit = UNIT_OF[i.s.animal];
+    const nm = !hasMeat(i.e);
+    return `<div class="mrow"><span>${esc(fmtDate(i.s.date))} · ${esc(animalTitle(i.s))}${nm ? '' : ' · ' + esc(qtyText(i.e.qty, unit))}</span>${nm ? `<span class="pill neutral">${esc(t('noMeatYet'))}</span>` : i.due > 0 ? `<b style="color:var(--bad)">${esc(money(i.due))}</b>` : `<span class="pill good">${esc(t('paid'))}</span>`}</div>`;
+  }).join('');
+  const body = `
+    <div class="row2"><div class="field"><label for="cName">${esc(t('name'))}</label><input id="cName" value="${esc(c.name)}" autocomplete="off"></div>
+    <div class="field"><label for="cPhone">${esc(t('phone'))}</label><input id="cPhone" type="tel" inputmode="tel" value="${esc(c.phone)}" placeholder="98XXXXXXXX"></div></div>
+    ${items.length ? `<div class="card money"><div class="lbl muted small" style="font-weight:700">${esc(t('personDues'))}</div>${list}<div class="mrow total bad"><span>${esc(t('due'))}</span><b>${esc(money(due))}</b></div></div>` : ''}
+    ${due > 0 ? `<button class="btn block" type="button" id="cRemind">${esc(t('remindAllDues'))}</button>` : ''}
+    <p class="err" id="cErr" hidden></p>`;
+  openSheet(esc(cid ? t('editContact') : t('addContact')), body,
+    (cid ? `<button class="btn danger" type="button" id="cDel">${esc(t('deleteContact'))}</button>` : `<button class="btn" type="button" data-close2>${esc(t('cancel'))}</button>`) +
+    `<button class="btn primary" type="button" id="cSave">${esc(t('save'))}</button>`);
+  const $ = id2 => document.getElementById(id2);
+  const c2 = $sheet.querySelector('[data-close2]'); if (c2) c2.onclick = closeSheet;
+  $('cSave').onclick = () => {
+    const name = $('cName').value.trim(); if (!name){ $('cErr').hidden = false; $('cErr').textContent = t('nameReq'); return; }
+    const phone = phoneIn($('cPhone').value); const id = cid || uid();
+    const prev = S.contacts[id] || {createdAt:Date.now()};
+    S.contacts[id] = Object.assign({}, prev, {name, phone}); saveContact(id);
+    // keep names and phones on records in step
+    if (cid) Object.entries(S.sessions).forEach(([sid, s]) => {
+      let ch = false; (s.entries || []).forEach(e => { if (e.cid === cid && (e.name !== name || e.phone !== phone)){ e.name = name; e.phone = phone; ch = true; } });
+      if (ch) saveSession(sid);
+    });
+    closeSheet(); render(); toast(t('saved'));
+  };
+  const del = $('cDel'); if (del) del.onclick = () => {
+    if (items.length){ $('cErr').hidden = false; $('cErr').textContent = t('cannotDelete'); return; }
+    delete S.contacts[cid]; saveContact(cid); closeSheet(); render();
+  };
+  const rem = $('cRemind'); if (rem) rem.onclick = () => {
+    const fresh = Object.assign({}, c, {name:$('cName').value.trim() || c.name});
+    openSender(t('remindTitle'), [{name:fresh.name, phone:phoneIn($('cPhone').value) || c.phone, msg:msgPerson(fresh, items)}]);
+  };
+}
+
+/* ---------- Sending messages ---------- */
+function openSender(title, queue){
+  let i = 0;
+  function show(){
+    const item = queue[i]; const multi = queue.length > 1;
+    const body = `
+      ${multi ? `<span class="pill neutral" style="align-self:flex-start">${esc(dig(t('ofN', i + 1, queue.length)))}</span>` : ''}
+      ${item.share ? '' : `<div class="mrow"><span><b>${esc(item.name)}</b></span><span class="num">${item.phone ? esc(item.phone) : ''}</span></div>`}
+      ${item.phone || item.share ? '' : `<p class="err" style="margin:0">${esc(t('noPhone'))}</p>`}
+      <div class="field"><label for="mText">${esc(t('message'))}</label><textarea id="mText" data-nofocus="1" rows="7">${esc(item.msg)}</textarea></div>
+      <div class="send-row">
+        <a class="btn primary" id="mSms" target="_blank" rel="noopener">${esc(t('sms'))}</a>
+        <a class="btn good" id="mWa" target="_blank" rel="noopener">${esc(t('whatsapp'))}</a>
+        <button class="btn" type="button" id="mCopy">${esc(t('copy'))}</button>
+      </div>
+      <p class="muted small" style="margin:0">${esc(t('opensApp'))}</p>`;
+    openSheet(esc(title), body, multi
+      ? `<button class="btn" type="button" id="mDone">${esc(t('done'))}</button>${i < queue.length - 1 ? `<button class="btn primary" type="button" id="mNext">${esc(t('next'))} ›</button>` : ''}`
+      : '');
+    const ta = document.getElementById('mText'), sms = document.getElementById('mSms'), wa = document.getElementById('mWa');
+    function links(){
+      item.msg = ta.value;
+      if (item.phone){ sms.href = smsHref(item.phone, ta.value); sms.removeAttribute('aria-disabled'); sms.style.opacity = ''; }
+      else { sms.removeAttribute('href'); sms.setAttribute('aria-disabled', 'true'); sms.style.opacity = '.45'; }
+      wa.href = item.phone ? waHref(item.phone, ta.value) : `https://wa.me/?text=${encodeURIComponent(ta.value)}`;
+    }
+    ta.oninput = links; links();
+    document.getElementById('mCopy').onclick = () => copyText(ta.value, ta);
+    const nx = document.getElementById('mNext'); if (nx) nx.onclick = () => { i++; show(); };
+    const dn = document.getElementById('mDone'); if (dn) dn.onclick = closeSheet;
+  }
+  show();
+}
+
+/* ---------- Clicks ---------- */
+$main.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act; const sid = S.sid; const s = S.sessions[sid];
+  switch (act){
+    case 'new-session': openSessionForm(null); break;
+    case 'load-example': loadExample(); break;
+    case 'open-session': S.view = 'session'; S.sid = b.dataset.id; S.filter = 'all'; render(); window.scrollTo(0, 0); break;
+    case 'go-home': S.view = 'home'; render(); window.scrollTo(0, 0); break;
+    case 'edit-session': openSessionForm(sid); break;
+    case 'add-entry': openEntryForm(sid, null); break;
+    case 'add-names': openBulkAdd(sid); break;
+    case 'adjust': if (adjustShares(s)){ saveSession(sid); render(); toast(t('adjusted')); } break;
+    case 'reset-orders': resetShares(s); saveSession(sid); render(); toast(t('restored2')); break;
+    case 'tick': {
+      const e = (s.entries || []).find(x => x.id === b.dataset.eid); if (!e) break;
+      if (!isWeighed(s)){ toast(t('weighFirst')); const a = document.getElementById('actualQty'); if (a) a.focus(); break; }
+      if (!hasMeat(e)){ toast(t('addMeatFirst')); const q = document.getElementById('q-' + e.id); if (q) q.focus(); break; }
+      if (entryStatus(s, e) === 'paid'){ setPayments(e, paymentsOf(e).slice(0, -1)); toast(entryPaid(e) > 0 ? t('lastPayRemoved') : t('markedUnpaid')); }
+      else { setPayments(e, paymentsOf(e).concat([{amt:entryDue(s, e), method:'cash', date:today()}])); toast(t('markedPaid')); }
+      saveSession(sid); render(); break;
+    }
+    case 'edit-entry': openEntryForm(sid, b.dataset.eid); break;
+    case 'filter': S.filter = b.dataset.f; render(); break;
+    case 'mark-paid': {
+      const e = (s.entries || []).find(x => x.id === b.dataset.eid); if (!e) break;
+      e.paid = entryAmt(s, e); if (!e.method) e.method = 'cash'; saveSession(sid); render(); toast(t('saved')); break;
+    }
+    case 'remind-entry': {
+      const e = (s.entries || []).find(x => x.id === b.dataset.eid); if (!e) break;
+      openSender(t('remindTitle'), [{name:e.name, phone:e.phone, msg:msgEntry(s, e)}]); break;
+    }
+    case 'remind-all': {
+      const q = (s.entries || []).filter(e => entryDue(s, e) > 0).map(e => ({name:e.name, phone:e.phone, msg:msgEntry(s, e)}));
+      if (q.length) openSender(t('remindTitle'), q); break;
+    }
+    case 'share-summary': openSender(t('summaryTitle'), [{name:s.ownerName || t('owner'), phone:s.ownerPhone, msg:msgSummary(s)}]); break;
+    case 'delete-session': confirmBox(t('confirmDeleteCutting'), t('del'), () => { delete S.sessions[sid]; saveSession(sid); S.view = 'home'; render(); }); break;
+    case 'add-contact': openPerson(null); break;
+    case 'open-person': openPerson(b.dataset.id); break;
+  }
+});
+$main.addEventListener('change', ev => {
+  const inp = ev.target.closest('[data-qty]'); if (!inp) return;
+  const s = S.sessions[S.sid]; const e = s && (s.entries || []).find(x => x.id === inp.dataset.qty); if (!e) return;
+  const v = inp.value.trim().replace(',', '.'); const q = v === '' ? '' : num(v);
+  if (q !== '' && !(q > 0)){ inp.value = e.qty ?? ''; return; }
+  if (String(q) === String(e.qty ?? '')) return;
+  if (!isWeighed(s)){ e.want = q; e.qty = q; }
+  else { if (e.want === undefined || e.want === null || e.want === '') e.want = e.qty === '' ? q : num(e.qty); e.qty = q; }
+  saveSession(S.sid); render();
+});
+$main.addEventListener('change', ev => {
+  const inp = ev.target.closest('[data-actual]'); if (!inp) return;
+  const s = S.sessions[S.sid]; if (!s) return;
+  const v = inp.value.trim().replace(',', '.'); const q = v === '' ? '' : num(v);
+  if (q !== '' && !(q > 0)){ inp.value = s.totalQty ?? ''; return; }
+  if (String(q) === String(s.totalQty ?? '')) return;
+  if (q !== '') freezeOrders(s);
+  s.totalQty = q; saveSession(S.sid); render();
+});
+$main.addEventListener('keydown', ev => {
+  if (ev.key === 'Enter' && ev.target.matches && ev.target.matches('[data-actual]')){ ev.preventDefault(); ev.target.blur(); return; }
+  const inp = ev.target.closest('[data-qty]'); if (!inp || ev.key !== 'Enter') return;
+  ev.preventDefault();
+  const all = [...$main.querySelectorAll('[data-qty]')]; const nxt = all[all.indexOf(inp) + 1]; const nid = nxt ? nxt.id : null;
+  inp.blur();
+  if (nid){ const n = document.getElementById(nid); if (n){ n.focus(); try { n.select(); } catch (e) {} } }
+});
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { S.view = b.dataset.tab; render(); window.scrollTo(0, 0); });
+document.getElementById('langBtn').onclick = () => { S.settings.lang = L() === 'ne' ? 'en' : 'ne'; saveSettings(); render(); };
+
+/* ---------- Phone version (no Claude): words, backup file, keep data ---------- */
+if (window.MASU_WEB){
+  Object.assign(T.en, {
+    localMode:'Saved on this phone. Save a backup file in Settings now and then, so nothing is lost if the phone breaks.',
+    slLocal:'Saved on this phone only. Nobody else can see it.',
+    aiNeedsClaude:'AI photo guessing works only in the Claude version of Masu Hisab. Photo measure and the tape work here, even without internet.',
+    storageLocal:'Records are saved on this phone.'
+  });
+  Object.assign(T.ne, {
+    localMode:'यो फोनमा सेभ हुन्छ। फोन बिग्रिए पनि नहराओस् भनेर बेलाबेलामा सेटिङमा ब्याकअप फाइल सेभ गर्नुहोस्।',
+    slLocal:'यो फोनमा मात्र सेभ हुन्छ। अरू कसैले देख्दैन।',
+    aiNeedsClaude:'AI फोटो अनुमान Claude संस्करणमा मात्र चल्छ। फोटो नाप र फिता यहाँ इन्टरनेटबिना पनि चल्छन्।',
+    storageLocal:'हिसाब यो फोनमा सेभ हुन्छ।'
+  });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+function backupObject(withPhotos){
+  const sales = {}; Object.entries(SL.list).forEach(([id, r]) => { const c = Object.assign({}, r); if (!withPhotos) delete c.photos; sales[id] = c; });
+  return {app:'masu-hisab', v:2, savedAt:new Date().toISOString(), settings:S.settings, sessions:S.sessions, contacts:S.contacts, sales};
+}
+async function saveBackupFile(){
+  const name = 'masu-hisab-backup-' + today() + '.json';
+  const blob = new Blob([JSON.stringify(backupObject(true))], {type:'application/json'});
+  try {
+    const file = new File([blob], name, {type:'application/json'});
+    if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+async function readBackupFile(file){
+  try { const txt = await file.text(); const ta = document.getElementById('restoreTa'); ta.value = txt; document.getElementById('restoreBtn').click(); }
+  catch (e) { toast(t('restoreError')); }
+}
+
+/* ---------- Start ---------- */
+initAI();
+if (window.MASU_PREVIEW){
+  S.mode = 'preview';
+  render();
+  initSales();
+  if (!Object.keys(S.sessions).length) loadExample();
+} else {
+  cacheLoad();
+  render();
+  connect();
+}
+
+// exposed for testing only
+window.__masu = {S, G, SL, findCoin, coinCentre, toBS, fmtDate, totals, entryAmt, entryDue, entryStatus, msgEntryOne, msgPersonOne, msgSummaryOne, fracStr, qtyText, money, waNum, personItems};
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
