@@ -344,6 +344,7 @@ const T = {
     pmCalCompare:(a,b)=>`Tape girth ${a}, photo girth ${b}.`, pmCalSave:'Correct future photo results with the tape', pmCalSaved:'Correction saved',
     pmCalOn:x=>`Tape correction in use (×${x})`, pmCalReset:'Remove', pmBadPhoto:'Could not open that photo. Try another one.',
     payments:'Payments', noPayments:'No payment yet.', addPayment:'Add payment', payAmount:'Amount (Rs.)', earlier:'earlier', paymentSaved:'Payment saved', lastPayRemoved:'Last payment removed', enterAmount:'Enter an amount.',
+    apkTitle:'Android app', apkHelp:'Install Masu Hisab as a normal app on any Android phone. Works without internet.', apkDownload:'Download the Android app (APK)', apkVersion:'App version', apkThis:n=>`You have version ${n}.`, apkNew:n=>`A new version (${n}) is ready.`, apkGet:'Download the new version',
     loading:'Loading…', fileBackup:'Save a backup file (with photos)', restoreFromFile:'Restore from a backup file',
     tabSales:'My sales', slTitle:'My sales', slSub:'Every animal you have sold, alive or as meat, with photos, weight and money. Only you can see your records.',
     slPrivate:'Your own records. Only you can see them.', slLocal:'Saved on this phone only. Sign in to Claude to keep them in your account.', slYou:'You',
@@ -470,6 +471,7 @@ const T = {
     pmCalCompare:(a,b)=>`फिताको घेरा ${a}, फोटोको घेरा ${b}।`, pmCalSave:'अबको फोटो नाप फिताअनुसार सच्याउनुहोस्', pmCalSaved:'सच्याउने मिलान सेभ भयो',
     pmCalOn:x=>`फिताअनुसार सच्याइएको (×${x})`, pmCalReset:'हटाउनुहोस्', pmBadPhoto:'फोटो खुलेन। अर्को फोटो प्रयास गर्नुहोस्।',
     payments:'भुक्तानीहरू', noPayments:'अहिलेसम्म केही तिरेको छैन।', addPayment:'भुक्तानी थप्नुहोस्', payAmount:'रकम (रु.)', earlier:'पहिले', paymentSaved:'भुक्तानी सेभ भयो', lastPayRemoved:'पछिल्लो भुक्तानी हटाइयो', enterAmount:'रकम लेख्नुहोस्।',
+    apkTitle:'एन्ड्रोइड एप', apkHelp:'कुनै पनि एन्ड्रोइड फोनमा मासु हिसाब साधारण एपझैं राख्नुहोस्। इन्टरनेटबिना चल्छ।', apkDownload:'एन्ड्रोइड एप डाउनलोड गर्नुहोस् (APK)', apkVersion:'एपको संस्करण', apkThis:n=>`तपाईंसँग संस्करण ${n} छ।`, apkNew:n=>`नयाँ संस्करण (${n}) आएको छ।`, apkGet:'नयाँ संस्करण डाउनलोड गर्नुहोस्',
     loading:'खुल्दैछ…', fileBackup:'ब्याकअप फाइल सेभ गर्नुहोस् (फोटोसहित)', restoreFromFile:'ब्याकअप फाइलबाट फर्काउनुहोस्',
     tabSales:'मेरो बिक्री', slTitle:'मेरो बिक्री', slSub:'तपाईंले बेचेका सबै पशु, जिउँदै वा मासु बनाएर, फोटो, तौल र पैसासहित। तपाईंको हिसाब तपाईंले मात्र देख्नुहुन्छ।',
     slPrivate:'तपाईंको आफ्नै हिसाब। तपाईंले मात्र देख्नुहुन्छ।', slLocal:'यो फोनमा मात्र सेभ हुन्छ। आफ्नो खातामा राख्न Claude मा साइन इन गर्नुहोस्।', slYou:'तपाईं',
@@ -1054,6 +1056,8 @@ function viewSettings(){
         <div class="field"><label for="r-bhag">${esc(t('bhagRate'))}</label><input id="r-bhag" inputmode="decimal" data-rate="bhag" value="${esc(st.bhagRate)}"></div>
       </div>
     </section>
+    ${window.MASU_WEB && !isNativeApp() ? `<section class="card sec"><h3>${esc(t('apkTitle'))}</h3><p class="muted small" style="margin:0">${esc(t('apkHelp'))}</p><a class="btn primary block" href="${APK_URL}">${esc(t('apkDownload'))}</a></section>` : ''}
+    ${isNativeApp() ? `<section class="card sec" id="updBox"><h3>${esc(t('apkVersion'))}</h3><p class="muted small" style="margin:0" id="updText">${esc(dig(t('apkThis', APP_BUILD)))}</p></section>` : ''}
     <section class="card sec"><h3>${esc(t('backup'))}</h3><p class="muted small" style="margin:0">${esc(S.mode === 'cloud' ? t('storageCloud') : t('storageLocal'))} ${esc(t('backupHelp'))}</p>
       ${window.MASU_WEB ? `<button class="btn primary block" type="button" id="fileBackup">${esc(t('fileBackup'))}</button>
         <label class="btn block" for="restoreFile" style="cursor:pointer">${esc(t('restoreFromFile'))}</label><input id="restoreFile" type="file" accept=".json,application/json" hidden>` : ''}
@@ -1071,6 +1075,7 @@ function bindSettings(){
     saveSettings(); toast(t('saved'));
   });
   document.getElementById('copyBackup').onclick = () => copyText(JSON.stringify(backupObject(false)));
+  if (isNativeApp()) checkUpdate();
   const bf = document.getElementById('fileBackup'); if (bf) bf.onclick = saveBackupFile;
   const rf = document.getElementById('restoreFile'); if (rf) rf.onchange = () => { if (rf.files[0]) readBackupFile(rf.files[0]); };
   document.getElementById('restoreBtn').onclick = () => {
@@ -2401,15 +2406,43 @@ function backupObject(withPhotos){
   const sales = {}; Object.entries(SL.list).forEach(([id, r]) => { const c = Object.assign({}, r); if (!withPhotos) delete c.photos; sales[id] = c; });
   return {app:'masu-hisab', v:2, savedAt:new Date().toISOString(), settings:S.settings, sessions:S.sessions, contacts:S.contacts, sales};
 }
+const APK_URL = 'https://github.com/Saroj010/masu-hisab/releases/latest/download/masu-hisab.apk';
+const APP_BUILD = '__MASU_BUILD__';
+function isNativeApp(){ try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; } }
 async function saveBackupFile(){
   const name = 'masu-hisab-backup-' + today() + '.json';
-  const blob = new Blob([JSON.stringify(backupObject(true))], {type:'application/json'});
+  const text = JSON.stringify(backupObject(true));
+  if (isNativeApp()){
+    // Android app: write the file, then open the phone's share menu (WhatsApp, Drive, Gmail…)
+    try {
+      const P = window.Capacitor.Plugins;
+      const w = await P.Filesystem.writeFile({path:name, data:text, directory:'CACHE', encoding:'utf8'});
+      await P.Share.share({title:name, files:[w.uri]});
+    } catch (e) { if (!/cancel/i.test(String(e && (e.message || e)))) { copyText(text); } }
+    return;
+  }
+  const blob = new Blob([text], {type:'application/json'});
   try {
     const file = new File([blob], name, {type:'application/json'});
     if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+let updChecked = null;
+async function checkUpdate(){
+  const show = (latest) => {
+    const box = document.getElementById('updBox'), txt = document.getElementById('updText'); if (!box || !txt) return;
+    if (latest && +latest > +APP_BUILD){
+      txt.textContent = dig(t('apkNew', latest));
+      if (!document.getElementById('updBtn')) box.insertAdjacentHTML('beforeend', `<a class="btn primary block" id="updBtn" href="${APK_URL}">${esc(t('apkGet'))}</a>`);
+    }
+  };
+  if (updChecked !== null){ show(updChecked); return; }
+  try {
+    const r = await fetch('https://api.github.com/repos/Saroj010/masu-hisab/releases/latest', {headers:{Accept:'application/vnd.github+json'}});
+    const j = await r.json(); const m = /(\d+)$/.exec(j.tag_name || ''); updChecked = m ? +m[1] : 0; show(updChecked);
+  } catch (e) { updChecked = 0; }
 }
 async function readBackupFile(file){
   try { const txt = await file.text(); const ta = document.getElementById('restoreTa'); ta.value = txt; document.getElementById('restoreBtn').click(); }
@@ -2434,7 +2467,7 @@ window.__masu = {S, G, SL, findCoin, coinCentre, toBS, fmtDate, totals, entryAmt
 })();
 </script>
 <script>
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+if ('serviceWorker' in navigator && !window.Capacitor && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 </script>

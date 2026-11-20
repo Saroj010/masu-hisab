@@ -1,0 +1,8 @@
+{
+  "appId": "com.saroj010.masuhisab",
+  "appName": "Masu Hisab",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  }
+}
